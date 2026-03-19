@@ -1,0 +1,18 @@
+[
+    {
+        "game_id": 1,
+        "game_date": "2024-12-15",
+        "location": "台中科大棒球場",
+        "opponent": "逢甲大學",
+        "result": "W",
+        "team_id": 1
+    },
+    {
+        "game_id": 2,
+        "game_date": "2025-01-10",
+        "location": "新莊棒球場",
+        "opponent": "中原大學",
+        "result": "L",
+        "team_id": 1
+    }
+]

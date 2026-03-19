@@ -1,0 +1,14 @@
+[
+    {
+        "mId": 1,
+        "account": "admin",
+        "password": "password123",
+        "name": "球隊管理員"
+    },
+    {
+        "mId": 2,
+        "account": "p1",
+        "password": "password",
+        "name": "劉詠傑"
+    }
+]

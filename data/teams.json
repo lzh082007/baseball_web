@@ -1,0 +1,17 @@
+[
+    {
+        "team_id": 1,
+        "team_name": "台中科大男子棒球隊",
+        "team_type": "Men"
+    },
+    {
+        "team_id": 2,
+        "team_name": "台中科大女子棒球隊",
+        "team_type": "Woman"
+    },
+    {
+        "team_id": 3,
+        "team_name": "中科OB(畢業校友)",
+        "team_type": "OB"
+    }
+]

@@ -1,0 +1,20 @@
+[
+    {
+        "player_id": 1,
+        "Player_name": "黃郁婷",
+        "position": "投手",
+        "height": 165,
+        "weight": 55,
+        "pitching_speed": 105,
+        "team_id": 2
+    },
+    {
+        "player_id": 2,
+        "Player_name": "劉詠傑",
+        "position": "外野手",
+        "height": 178,
+        "weight": 70,
+        "pitching_speed": 115,
+        "team_id": 1
+    }
+]
