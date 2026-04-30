@@ -1,0 +1,34 @@
+[
+    {
+        "video_id": 1,
+        "title": "2025 全國大專盃決賽 (全場精華)",
+        "description": "精采逆轉勝，第9局下半的再見安打！",
+        "url": "https://www.youtube.com/embed/zH3vH40qY60",
+        "date": "2025-10-15",
+        "category": "比賽精華"
+    },
+    {
+        "video_id": 2,
+        "title": "打擊姿勢調整訓練",
+        "description": "教練針對核心發力與下盤穩定性的專項訓練。",
+        "url": "https://www.youtube.com/embed/qL0lDq0I-Uo",
+        "date": "2025-09-20",
+        "category": "訓練解析"
+    },
+    {
+        "video_id": 3,
+        "title": "投手牛棚測速與球種分析",
+        "description": "本機測速與轉速分析，包含曲球與滑球的軌跡比較。",
+        "url": "https://www.youtube.com/embed/U3i5M61jMIs",
+        "date": "2025-09-05",
+        "category": "科學分析"
+    },
+    {
+        "video_id": 4,
+        "title": "雙殺守備戰術演練",
+        "description": "內野手站位與補位速度實戰演練。",
+        "url": "https://www.youtube.com/embed/G28lCgA92G4",
+        "date": "2025-08-30",
+        "category": "團隊戰術"
+    }
+]

@@ -254,6 +254,10 @@ footer {
     color: var(--secondary);
 }
 
+.footer-section a:hover {
+    color: var(--secondary) !important;
+}
+
 .footer-bottom {
     text-align: center;
     padding-top: 20px;

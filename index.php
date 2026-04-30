@@ -1,11 +1,15 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 require_once 'includes/header.php';
 
 // Prepare data for homepage
-$newsList = array_reverse($db->getAll('news')); // Latest first
+$newsList = $db->getAll('news');
+usort($newsList, function($a, $b) {
+    return strtotime($b['created_at']) - strtotime($a['created_at']);
+});
 $recentNews = array_slice($newsList, 0, 3);
-
-
 ?>
 
 <div class="page-header home-header">

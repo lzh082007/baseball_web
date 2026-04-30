@@ -102,7 +102,7 @@ if (empty($db->getAll('team'))) {
         foreach ($playerData as $p) {
             $db->insert('player', array_merge($p, [
                 'Team_Id' => 1,
-                'image_path' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($p['Player_Name'])
+                'image_path' => ''
             ]));
         }
     }
@@ -116,6 +116,18 @@ if (empty($db->getAll('team'))) {
         ];
         foreach ($obData as $o) {
             $db->insert('ob', array_merge($o, ['Team_Id' => 3]));
+        }
+    }
+
+    // 6. Seed Contact Us if empty
+    if (empty($db->getAll('contact_us'))) {
+        $contactData = [
+            ['icon_class' => 'fas fa-map-marker-alt', 'content_text' => '國立臺中科技大學 體育中心'],
+            ['icon_class' => 'fas fa-envelope', 'content_text' => 'nutc_baseball@edu.tw'],
+            ['icon_class' => 'fas fa-phone', 'content_text' => '04-2219-XXXX']
+        ];
+        foreach ($contactData as $c) {
+            $db->insert('contact_us', $c);
         }
     }
 }

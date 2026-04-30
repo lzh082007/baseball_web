@@ -35,7 +35,8 @@ if ($currentPos !== '全部') {
             <?php foreach ($filteredPlayers as $p): ?>
                 <div class="card player-card-custom">
                     <div class="player-card-img-box">
-                        <img src="<?= htmlspecialchars($p['image_path']) ?>" alt="<?= htmlspecialchars($p['Player_Name']) ?>" class="player-card-img">
+                        <?php $imgSrc = !empty($p['image_path']) ? htmlspecialchars($p['image_path']) : 'assets/images/default-player.png'; ?>
+                        <img src="<?= $imgSrc ?>" alt="<?= htmlspecialchars($p['Player_Name']) ?>" class="player-card-img">
                         <div class="player-card-number">
                             #<?= $p['jersey_number'] ?>
                         </div>

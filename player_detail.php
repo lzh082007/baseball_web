@@ -26,7 +26,8 @@ $performances = array_filter($db->getAll('playerrecord'), function($p) use ($pla
         <div class="player-detail-layout">
             <!-- Left: Portrait -->
             <div class="player-portrait-card">
-                <img src="<?= htmlspecialchars($player['image_path']) ?>" alt="<?= htmlspecialchars($player['Player_Name']) ?>" class="player-portrait-img">
+                <?php $imgSrc = !empty($player['image_path']) ? htmlspecialchars($player['image_path']) : 'assets/images/default-player.png'; ?>
+                <img src="<?= $imgSrc ?>" alt="<?= htmlspecialchars($player['Player_Name']) ?>" class="player-portrait-img">
                 <div class="player-portrait-info">
                     <h2 class="player-portrait-name"><?= htmlspecialchars($player['Player_Name']) ?></h2>
                     <p class="player-portrait-subtitle"><?= htmlspecialchars($player['position']) ?> | #<?= $player['jersey_number'] ?></p>

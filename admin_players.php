@@ -5,6 +5,19 @@ requireAdmin();
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add'])) {
+        $image_path = '';
+        if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/players/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            $filename = time() . '_' . basename($_FILES['image_file']['name']);
+            $target_path = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['image_file']['tmp_name'], $target_path)) {
+                $image_path = $target_path;
+            }
+        }
+
         $db->insert('player', [
             'Team_Id' => (int)$_POST['team_id'],
             'Player_Name' => $_POST['name'],
@@ -12,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'position' => $_POST['position'],
             'height' => (int)$_POST['height'],
             'weight' => (int)$_POST['weight'],
-            'image_path' => !empty($_POST['image_path']) ? $_POST['image_path'] : 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($_POST['name'])
+            'image_path' => $image_path
         ]);
         $msg = '球員新增成功！';
     }
@@ -43,7 +56,7 @@ $teams = $db->getAll('team');
             <!-- Add Player Form -->
             <div class="admin-form-card">
                 <h3>新增球員</h3>
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label>姓名</label>
                         <input type="text" name="name" class="form-control" required>
@@ -71,8 +84,8 @@ $teams = $db->getAll('team');
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>球員照片內容 (URL)</label>
-                        <input type="text" name="image_path" class="form-control" placeholder="留空則自動生成...">
+                        <label>球員照片上傳</label>
+                        <input type="file" name="image_file" class="form-control" accept="image/*">
                     </div>
                     <div class="admin-input-grid">
                         <div class="form-group">

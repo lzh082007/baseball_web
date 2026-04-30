@@ -42,6 +42,20 @@ CREATE TABLE IF NOT EXISTS `ai_analysis` (
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `contact_us`
+--
+
+DROP TABLE IF EXISTS `contact_us`;
+CREATE TABLE IF NOT EXISTS `contact_us` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `icon_class` varchar(50) NOT NULL,
+  `content_text` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `form`
 --
 
@@ -143,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `ob` (
   `OB_name` varchar(50) NOT NULL COMMENT '畢業學長姐姓名',
   `graduation_year` int(11) DEFAULT NULL COMMENT '畢業年度',
   `status` varchar(100) DEFAULT NULL COMMENT '畢業後現況或豐功偉業',
+  `image_path` varchar(255) DEFAULT NULL COMMENT 'OB照片路徑',
   PRIMARY KEY (`Ob_id`),
   KEY `Team_Id` (`Team_Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

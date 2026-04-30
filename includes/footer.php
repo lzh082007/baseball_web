@@ -1,29 +1,36 @@
+<?php
+if (!isset($db)) {
+    require_once 'Database.php';
+    $db = new Database();
+}
+$contactInfos = $db->getAll('contact_us');
+?>
 <footer>
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>NUTC BASEBALL</h3>
-            <p>中科大棒球隊致力於打造卓越的棒球環境，承續 2012 至今的熱血歷史，培育每一位追逐夢想的球員。</p>
-            <div style="margin-top: 20px; font-size: 1.5rem; gap: 20px; display: flex;">
-                <a href="#" style="color: var(--text-white);"><i class="fab fa-facebook"></i></a>
-                <a href="#" style="color: var(--text-white);"><i class="fab fa-instagram"></i></a>
-                <a href="#" style="color: var(--text-white);"><i class="fab fa-youtube"></i></a>
-            </div>
-        </div>
-        <div class="footer-section">
-            <h3>導覽連結</h3>
-            <ul style="list-style: none;">
-                <li><a href="index.php" style="color: #ccc; text-decoration: none; line-height: 2;">首頁</a></li>
-                <li><a href="about.php" style="color: #ccc; text-decoration: none; line-height: 2;">關於我們</a></li>
-                <li><a href="matches.php" style="color: #ccc; text-decoration: none; line-height: 2;">賽事資訊</a></li>
-                <li><a href="players.php" style="color: #ccc; text-decoration: none; line-height: 2;">球員資訊</a></li>
-                <li><a href="join.php" style="color: #ccc; text-decoration: none; line-height: 2;">加入我們</a></li>
+    <div class="footer-content" style="display: flex; justify-content: center; gap: 80px; text-align: center; max-width: 800px; margin: 0 auto; margin-bottom: 40px;">
+        <div class="footer-section" style="flex: 1;">
+            <h3 style="margin-bottom: 25px; font-size: 1.4rem; letter-spacing: 2px;">導覽連結</h3>
+            <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px;">
+                <li><a href="index.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">首頁</a></li>
+                <li><a href="about.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">關於我們</a></li>
+                <li><a href="matches.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">賽事資訊</a></li>
+                <li><a href="players.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">球員資訊</a></li>
+                <li><a href="join.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">加入我們</a></li>
             </ul>
         </div>
-        <div class="footer-section">
-            <h3>聯繫我們</h3>
-            <p><i class="fas fa-map-marker-alt" style="margin-right: 10px; color: var(--secondary);"></i> 國立臺中科技大學 體育中心</p>
-            <p><i class="fas fa-envelope" style="margin-right: 10px; color: var(--secondary);"></i> nutc_baseball@edu.tw</p>
-            <p><i class="fas fa-phone" style="margin-right: 10px; color: var(--secondary);"></i> 04-2219-XXXX</p>
+        <div class="footer-section" style="flex: 1;">
+            <h3 style="margin-bottom: 25px; font-size: 1.4rem; letter-spacing: 2px;">聯繫我們</h3>
+            <div style="display: flex; flex-direction: column; gap: 18px; align-items: center;">
+                <?php if (empty($contactInfos)): ?>
+                    <p style="color: #888;">尚未設定聯絡資訊</p>
+                <?php else: ?>
+                    <?php foreach ($contactInfos as $c): ?>
+                        <p style="margin: 0; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; gap: 12px;">
+                            <i class="<?= htmlspecialchars($c['icon_class']) ?>" style="color: var(--secondary); font-size: 1.2rem; width: 25px; text-align: center;"></i> 
+                            <span><?= htmlspecialchars($c['content_text']) ?></span>
+                        </p>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     <div class="footer-bottom">

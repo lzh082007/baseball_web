@@ -50,6 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
         <div class="login-footer">
             <a href="index.php">返回首頁</a>
+            <span style="color: #999; margin: 0 10px;">|</span>
+            <a href="register.php">註冊新帳號</a>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>

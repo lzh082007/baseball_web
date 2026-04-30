@@ -2,6 +2,9 @@
 require_once 'includes/header.php';
 
 $obMembers = $db->getAll('ob');
+usort($obMembers, function ($a, $b) {
+    return $b['graduation_year'] <=> $a['graduation_year'];
+});
 ?>
 <div class="page-header">
     <h1>OB 專區</h1>
@@ -19,7 +22,11 @@ $obMembers = $db->getAll('ob');
             <?php foreach ($obMembers as $ob): ?>
                 <div class="card ob-card">
                     <div class="ob-card-img-box">
-                        <i class="fas fa-user-graduate"></i>
+                        <?php if (!empty($ob['image_path'])): ?>
+                            <img src="<?= htmlspecialchars($ob['image_path']) ?>" alt="<?= htmlspecialchars($ob['OB_name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <i class="fas fa-user-graduate"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="card-content">
                         <span class="ob-card-badge">
@@ -34,16 +41,6 @@ $obMembers = $db->getAll('ob');
                     </div>
                 </div>
             <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-
-<section class="ob-cta-section">
-    <div class="container">
-        <h2>中科 OB 薪火相傳</h2>
-        <p>我們誠摯邀請所有已畢業的球員與教練加入 OB 群組，參與每年度的重聚交流賽與資源引導。讓我們攜手壯大中科大棒球隊的大家庭！</p>
-        <div class="ob-cta-btn-box">
-            <a href="#" class="ob-cta-btn">加入 OB 聯繫中心</a>
         </div>
     </div>
 </section>

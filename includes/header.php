@@ -47,6 +47,7 @@
                 <a href="logout.php" class="btn-login" style="background: transparent; color: var(--text-white); border: 2px solid var(--primary); padding: 5px 15px; font-size: 0.8rem;">登出</a>
             <?php else: ?>
                 <a href="login.php" class="btn-login" style="padding: 5px 20px; font-size: 0.9rem;">登入</a>
+                <a href="register.php" style="margin-left: 10px; color: var(--text-white); text-decoration: none; font-size: 0.8rem;">註冊</a>
             <?php endif; ?>
         </div>
     </nav>

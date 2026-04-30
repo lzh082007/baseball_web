@@ -58,6 +58,9 @@ $pendingMembers = array_filter($db->getAll('member'), function($m) {
             <a href="admin_videos.php" class="admin-module-card hover-secondary">
                 <i class="fas fa-video"></i> 影片專區管理
             </a>
+            <a href="admin_contact.php" class="admin-module-card hover-primary">
+                <i class="fas fa-address-book"></i> 聯繫我們管理
+            </a>
         </div>
     </div>
 </section>
