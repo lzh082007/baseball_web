@@ -1,0 +1,17 @@
+[
+    {
+        "team_name": "中科大男棒",
+        "team_type": "Men",
+        "team_id": 1
+    },
+    {
+        "team_name": "中科大女棒",
+        "team_type": "Woman",
+        "team_id": 2
+    },
+    {
+        "team_name": "中科大OB",
+        "team_type": "OB",
+        "team_id": 3
+    }
+]

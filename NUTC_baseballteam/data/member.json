@@ -1,0 +1,18 @@
+[
+    {
+        "account": "admin",
+        "password": "$2y$12$l0nRpBcs9fRzX.J6F2JzX.CkkoTnfuzPtdeBO.dAdBHxlYS30RlFC",
+        "name": "管理者(Admin)",
+        "role": "admin",
+        "status": "active",
+        "m_id": 1
+    },
+    {
+        "account": "user1",
+        "password": "$2y$12$ZebhlNuz62T13UmfX.4fDu2c3WXYKOFaLV3ar5FijsQZeOXZx\/Jue",
+        "name": "管理者(User1)",
+        "role": "admin",
+        "status": "active",
+        "m_id": 2
+    }
+]
