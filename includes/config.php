@@ -131,3 +131,16 @@ if (empty($db->getAll('team'))) {
         }
     }
 }
+
+// Seed Team History independently (runs regardless of team seed state)
+if (empty($db->getAll('teamhistory'))) {
+    $historyData = [
+        ['Team_Id' => 1, 'start_year' => 2012, 'title' => '2012 球隊創立', 'content' => '中科大棒球隊於 2012 年正式成立，由一群熱愛棒球的同學共同創隊，從零開始打造屬於中科大的棒球文化。'],
+        ['Team_Id' => 1, 'start_year' => 2015, 'title' => '2015 首次全國賽', 'content' => '首次代表學校參加全國大專棒球聯賽，雖未晉級，但展現了球隊的成長與潛力，奠定日後征戰的基礎。'],
+        ['Team_Id' => 1, 'start_year' => 2018, 'title' => '2018 女棒隊成立', 'content' => '為推廣女子棒球運動，中科大女棒隊於 2018 年正式成立，成為校內第一支女子棒球隊，吸引眾多女同學投入。'],
+        ['Team_Id' => 1, 'start_year' => 2022, 'title' => '2022 聯賽佳績', 'content' => '在全國大專棒球聯賽中取得隊史最佳成績，球員們的努力與付出獲得肯定，激勵全隊持續向上。'],
+    ];
+    foreach ($historyData as $h) {
+        $db->insert('teamhistory', $h);
+    }
+}

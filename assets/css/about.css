@@ -1,43 +1,146 @@
+/* ── About Section ── */
 .about-section-1 {
     padding: 60px 5%;
+    background: #f7f9fc;
+    overflow: hidden;
 }
 
+/* ── Horizontal Timeline Wrapper（可橫向捲動） ── */
+.timeline-wrapper {
+    overflow-x: auto;
+    padding: 20px 0 30px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) #eee;
+}
+.timeline-wrapper::-webkit-scrollbar { height: 5px; }
+.timeline-wrapper::-webkit-scrollbar-track { background: #eee; border-radius: 10px; }
+.timeline-wrapper::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+/* ── 外層容器：固定高度，讓上下卡片都有空間 ── */
 .timeline-container {
     position: relative;
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.timeline-item {
-    margin-bottom: 40px;
     display: flex;
-    gap: 30px;
-    align-items: flex-start;
+    align-items: center;        /* 讓所有 item 對齊中線 */
+    min-width: max-content;
+    padding: 0 60px;
+    height: 340px;              /* 上卡片 + 線 + 下卡片的總高 */
 }
 
-.timeline-year {
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: var(--primary);
-    width: 100px;
+/* 水平主線 */
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 60px;
+    right: 60px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+/* ── 每個節點 ── */
+.timeline-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 200px;
     flex-shrink: 0;
 }
 
-.timeline-content {
-    flex-grow: 1;
+/* 圓點（絕對定位在中線上） */
+.timeline-dot {
+    width: 16px;
+    height: 16px;
+    background: var(--primary);
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--primary);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    flex-shrink: 0;
 }
 
-.timeline-content h3 {
-    font-size: 1.3rem;
+/* 連接線（圓點到卡片） */
+.timeline-connector {
+    width: 2px;
+    height: 30px;
+    background: var(--primary);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* 奇數：卡片在上方 */
+.timeline-item:nth-child(odd) .timeline-card {
+    top: calc(50% - 16px - 30px - 120px); /* 圓點半徑 + 連接線 + 卡片高度 */
+    position: absolute;
+}
+.timeline-item:nth-child(odd) .timeline-connector {
+    top: calc(50% - 16px - 30px);
+}
+
+/* 偶數：卡片在下方 */
+.timeline-item:nth-child(even) .timeline-card {
+    top: calc(50% + 16px + 30px);
+    position: absolute;
+}
+.timeline-item:nth-child(even) .timeline-connector {
+    top: calc(50% + 8px);
+}
+
+/* ── 卡片 ── */
+.timeline-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid #eee;
+    width: 180px;
+    text-align: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.timeline-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(200,0,0,0.13);
+    border-color: var(--primary);
+}
+
+/* 年份標籤 */
+.timeline-year {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 12px;
+    border-radius: 50px;
     margin-bottom: 8px;
+}
+
+.timeline-card h3 {
+    font-size: 0.9rem;
     font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+    line-height: 1.4;
 }
 
-.timeline-content p {
+.timeline-card p {
     color: #666;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 0;
 }
 
+/* ── 深色區塊 ── */
 .about-dark-section {
     background: var(--bg-dark);
     color: white;
@@ -93,4 +196,11 @@
 .trophy-h3 {
     font-size: 2rem;
     margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
 }

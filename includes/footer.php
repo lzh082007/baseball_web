@@ -6,10 +6,10 @@ if (!isset($db)) {
 $contactInfos = $db->getAll('contact_us');
 ?>
 <footer>
-    <div class="footer-content" style="display: flex; justify-content: center; gap: 80px; text-align: center; max-width: 800px; margin: 0 auto; margin-bottom: 40px;">
-        <div class="footer-section" style="flex: 1;">
-            <h3 style="margin-bottom: 25px; font-size: 1.4rem; letter-spacing: 2px;">導覽連結</h3>
-            <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px;">
+    <div class="footer-content" style="display: flex; justify-content: center; align-items: flex-start; gap: 80px; max-width: 900px; margin: 0 auto; margin-bottom: 20px;">
+        <div class="footer-section">
+            <h3 style="margin-bottom: 15px; font-size: 1.4rem; letter-spacing: 2px;">導覽連結</h3>
+            <ul style="list-style: none; padding: 0; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px 20px;">
                 <li><a href="index.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">首頁</a></li>
                 <li><a href="about.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">關於我們</a></li>
                 <li><a href="matches.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">賽事資訊</a></li>
@@ -17,9 +17,9 @@ $contactInfos = $db->getAll('contact_us');
                 <li><a href="join.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">加入我們</a></li>
             </ul>
         </div>
-        <div class="footer-section" style="flex: 1;">
-            <h3 style="margin-bottom: 25px; font-size: 1.4rem; letter-spacing: 2px;">聯繫我們</h3>
-            <div style="display: flex; flex-direction: column; gap: 18px; align-items: center;">
+        <div class="footer-section">
+            <h3 style="margin-bottom: 15px; font-size: 1.4rem; letter-spacing: 2px;">聯繫我們</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
                 <?php if (empty($contactInfos)): ?>
                     <p style="color: #888;">尚未設定聯絡資訊</p>
                 <?php else: ?>

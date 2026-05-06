@@ -2,6 +2,9 @@
 require_once 'includes/header.php';
 
 $histories = $db->getAll('teamhistory');
+usort($histories, function($a, $b) {
+    return $a['start_year'] <=> $b['start_year'];
+});
 ?>
 
 <div class="page-header">
@@ -16,18 +19,20 @@ $histories = $db->getAll('teamhistory');
             <h2>歷史脈絡</h2>
         </div>
         
-        <div class="timeline-container">
-            <?php foreach ($histories as $index => $h): ?>
-                <div class="timeline-item">
-                    <div class="timeline-year">
-                        <?= explode(' ', $h['title'])[0] ?>
+        <div class="timeline-wrapper">
+            <div class="timeline-container">
+                <?php foreach ($histories as $index => $h): ?>
+                    <div class="timeline-item">
+                        <div class="timeline-card">
+                            <div class="timeline-year"><?= (int)$h['start_year'] ?></div>
+                            <h3><?= htmlspecialchars($h['title']) ?></h3>
+                            <p><?= nl2br(htmlspecialchars($h['content'])) ?></p>
+                        </div>
+                        <div class="timeline-connector"></div>
+                        <div class="timeline-dot"></div>
                     </div>
-                    <div class="timeline-content">
-                        <h3><?= implode(' ', array_slice(explode(' ', $h['title']), 1)) ?></h3>
-                        <p><?= nl2br(htmlspecialchars($h['content'])) ?></p>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
 </section>
