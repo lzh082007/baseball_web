@@ -15,6 +15,30 @@
         <link rel="stylesheet" href="<?= $css_file ?>">
     <?php endif; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            line-height: 1.5;
+            box-sizing: border-box;
+            gap: 5px;
+            margin-right: 5px;
+        }
+        .admin-btn-edit { background: #ffc107; color: #212529; }
+        .admin-btn-edit:hover { background: #e0a800; color: #212529; }
+        .admin-btn-delete { background: #dc3545; color: white; margin-right: 0; }
+        .admin-btn-delete:hover { background: #c82333; color: white; }
+    </style>
 </head>
 <body>
     <nav>

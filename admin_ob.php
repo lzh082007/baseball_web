@@ -27,10 +27,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
         $msg = 'OB 校友新增成功！';
     }
+    if (isset($_POST['update'])) {
+        $updateData = [
+            'Team_Id' => (int)$_POST['team_id'],
+            'OB_name' => $_POST['OB_name'],
+            'graduation_year' => (int)$_POST['graduation_year'],
+            'status' => $_POST['status']
+        ];
+        if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/ob/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            $filename = time() . '_' . basename($_FILES['image_file']['name']);
+            $target_path = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['image_file']['tmp_name'], $target_path)) {
+                $updateData['image_path'] = $target_path;
+            }
+        }
+        $db->update('ob', $_POST['Ob_id'], $updateData);
+        $msg = 'OB 校友資料修改成功！';
+    }
     if (isset($_POST['delete'])) {
         $db->delete('ob', $_POST['Ob_id']);
         $msg = 'OB 校友已刪除。';
     }
+}
+
+$editRecord = null;
+if (isset($_GET['edit_id'])) {
+    $editRecord = $db->find('ob', 'Ob_id', $_GET['edit_id']);
 }
 
 $obMembers = $db->getAll('ob');
@@ -56,34 +80,45 @@ $teams = $db->getAll('team');
         <div class="admin-players-layout" style="display: grid; grid-template-columns: 350px 1fr; gap: 2rem;">
             <!-- Add OB Form -->
             <div class="admin-form-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content;">
-                <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: inline-block;">新增 OB 資料</h3>
-                <form method="POST" enctype="multipart/form-data">
+                <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: inline-block;"><?= $editRecord ? '修改 OB 資料' : '新增 OB 資料' ?></h3>
+                <form method="POST" action="admin_ob.php" enctype="multipart/form-data">
+                    <?php if ($editRecord): ?>
+                        <input type="hidden" name="Ob_id" value="<?= $editRecord['Ob_id'] ?>">
+                    <?php endif; ?>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">姓名</label>
-                        <input type="text" name="OB_name" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" required>
+                        <input type="text" name="OB_name" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" value="<?= $editRecord ? htmlspecialchars($editRecord['OB_name']) : '' ?>" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">畢業年度 (西元或民國，依團隊統一標準)</label>
-                        <input type="number" name="graduation_year" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" required>
+                        <input type="number" name="graduation_year" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" value="<?= $editRecord ? htmlspecialchars($editRecord['graduation_year']) : '' ?>" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">所屬球隊</label>
                         <select name="team_id" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
                             <?php foreach ($teams as $t): ?>
-                                <option value="<?= $t['team_Id'] ?>"><?= htmlspecialchars($t['team_name']) ?></option>
+                                <option value="<?= $t['team_Id'] ?>" <?= $editRecord && $editRecord['Team_Id'] == $t['team_Id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['team_name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">上傳照片</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">上傳照片 (若不修改請留空)</label>
                         <input type="file" name="image_file" class="form-control" accept="image/*" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+                        <?php if ($editRecord && !empty($editRecord['image_path'])): ?>
+                            <small style="color: #666; display: block; margin-top: 5px;">目前已上傳照片</small>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">豐功偉業 / 畢業現況</label>
-                        <textarea name="status" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; resize: vertical;" rows="4" placeholder="例如：110年大專盃冠軍隊長、現就職於某科技公司..."></textarea>
+                        <textarea name="status" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; resize: vertical;" rows="4" placeholder="例如：110年大專盃冠軍隊長、現就職於某科技公司..."><?= $editRecord ? htmlspecialchars($editRecord['status']) : '' ?></textarea>
                     </div>
-                    <button type="submit" name="add" class="btn-submit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: opacity 0.3s;">確認新增</button>
-                    <a href="admin_dashboard.php" style="display: block; text-align: center; margin-top: 15px; color: var(--secondary); text-decoration: none;">返回控制台</a>
+                    <?php if ($editRecord): ?>
+                        <button type="submit" name="update" class="btn-submit" style="width: 100%; padding: 12px; background: var(--secondary); color: #1a1a1a; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: opacity 0.3s;">儲存修改</button>
+                        <a href="admin_ob.php" style="display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none;">取消修改</a>
+                    <?php else: ?>
+                        <button type="submit" name="add" class="btn-submit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: opacity 0.3s;">確認新增</button>
+                        <a href="admin_dashboard.php" style="display: block; text-align: center; margin-top: 15px; color: var(--secondary); text-decoration: none;">返回控制台</a>
+                    <?php endif; ?>
                 </form>
             </div>
 
@@ -109,10 +144,11 @@ $teams = $db->getAll('team');
                                     <td style="padding: 12px 15px; font-weight: 500; color: var(--secondary);"><?= htmlspecialchars($ob['graduation_year']) ?></td>
                                     <td style="padding: 12px 15px; font-weight: 500; color: var(--primary);"><?= htmlspecialchars($ob['OB_name']) ?></td>
                                     <td style="padding: 12px 15px; color: #666; font-size: 0.9em;"><?= mb_substr(htmlspecialchars($ob['status']), 0, 30) ?><?= mb_strlen($ob['status']) > 30 ? '...' : '' ?></td>
-                                    <td style="padding: 12px 15px; text-align: center;">
+                                    <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
+                                        <a href="admin_ob.php?edit_id=<?= $ob['Ob_id'] ?>" class="admin-action-btn admin-btn-edit"><i class="fas fa-edit"></i> 修改</a>
                                         <form method="POST" style="display: inline;" onsubmit="return confirm('確定要刪除這位學長姐的紀錄嗎？')">
                                             <input type="hidden" name="Ob_id" value="<?= $ob['Ob_id'] ?>">
-                                            <button type="submit" name="delete" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s;"><i class="fas fa-trash"></i> 刪除</button>
+                                            <button type="submit" name="delete" class="admin-action-btn admin-btn-delete"><i class="fas fa-trash"></i> 刪除</button>
                                         </form>
                                     </td>
                                 </tr>
