@@ -96,9 +96,9 @@ $activeMembers = array_filter($members, function($m) {
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">權限角色</label>
                         <select name="role" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
-                            <?php $r = $editRecord ? $editRecord['role'] : 'fan'; ?>
-                            <option value="fan" <?= $r == 'fan' ? 'selected' : '' ?>>一般粉絲</option>
+                            <?php $r = $editRecord ? $editRecord['role'] : 'player'; ?>
                             <option value="player" <?= $r == 'player' ? 'selected' : '' ?>>本校球員</option>
+                            <option value="ob" <?= $r == 'ob' ? 'selected' : '' ?>>畢業學長</option>
                             <option value="admin" <?= $r == 'admin' ? 'selected' : '' ?>>管理員</option>
                         </select>
                     </div>
@@ -148,8 +148,8 @@ $activeMembers = array_filter($members, function($m) {
                                             <form method="POST" style="display: inline-flex; align-items: center; gap: 10px; justify-content: center; width: 100%;">
                                                 <input type="hidden" name="mId" value="<?= $m['mId'] ?>">
                                                 <select name="role" class="form-control" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; max-width: 120px;" required>
-                                                    <option value="fan" <?= $m['role'] == 'fan' ? 'selected' : '' ?>>一般粉絲</option>
                                                     <option value="player" <?= $m['role'] == 'player' ? 'selected' : '' ?>>本校球員</option>
+                                                    <option value="ob" <?= $m['role'] == 'ob' ? 'selected' : '' ?>>畢業學長</option>
                                                     <option value="admin" <?= $m['role'] == 'admin' ? 'selected' : '' ?>>管理員</option>
                                                 </select>
                                                 <button type="submit" name="approve" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 0.9rem;"><i class="fas fa-check"></i> 批准</button>
@@ -191,7 +191,7 @@ $activeMembers = array_filter($members, function($m) {
                                         </td>
                                         <td style="padding: 12px 15px; color: #666;">
                                             <?php 
-                                                $rMap = ['fan'=>'一般粉絲', 'player'=>'本校球員', 'admin'=>'管理員'];
+                                                $rMap = ['player'=>'本校球員', 'ob'=>'畢業學長', 'admin'=>'管理員'];
                                                 echo isset($rMap[$m['role']]) ? $rMap[$m['role']] : htmlspecialchars($m['role']);
                                             ?>
                                         </td>

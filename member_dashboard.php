@@ -1,9 +1,9 @@
 <?php
 require_once 'includes/header.php';
 requireAuth();
-
 $user = $_SESSION['user'];
-$role = $user['role'] == 'admin' ? '管理員' : ($user['role'] == 'player' ? '本校球員' : '一般粉絲');
+$roleMap = ['admin' => '管理員', 'player' => '本校球員', 'ob' => '畢業學長'];
+$role = isset($roleMap[$user['role']]) ? $roleMap[$user['role']] : '未知';
 
 // 判斷目前顯示哪個分頁
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
@@ -196,12 +196,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--secondary); padding-bottom:10px; display:inline-block;">
                             <i class="fas fa-baseball-ball" style="margin-right:8px; color:var(--secondary);"></i>球員數據
                         </h3>
-                        <?php if ($user['role'] === 'fan'): ?>
-                        <div style="text-align:center; padding:40px 20px; color:#aaa;">
-                            <i class="fas fa-lock" style="font-size:2.5rem; margin-bottom:15px; display:block;"></i>
-                            <p>僅限球員身份可設定球員數據。</p>
-                        </div>
-                        <?php else: ?>
                         <form method="POST" action="member_dashboard.php?tab=settings">
                             <input type="hidden" name="action" value="update_stats">
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
@@ -255,7 +249,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 儲存球員數據
                             </button>
                         </form>
-                        <?php endif; ?>
                     </div>
 
                 </div>

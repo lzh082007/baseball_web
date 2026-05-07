@@ -21,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
             'form_age' => $age,
             'form_education' => $school_system,
             'form_position' => $position,
-            'form_motive' => $motivation
+            'form_motive' => $motivation,
+            'form_contact' => $_POST['contact'] ?? ''
         ]);
         $success = '感謝您的申請！球經將於 1-3 個工作天內與您聯繫。';
     } else {
@@ -92,6 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                     <div class="form-group">
                         <label>預期守位 (非必填)</label>
                         <input type="text" name="position" class="form-control" placeholder="如：投手、內野手...">
+                    </div>
+                    <div class="form-group">
+                        <label>聯絡資訊 (LINE ID / 手機號碼 / IG ID) *</label>
+                        <input type="text" name="contact" class="form-control" placeholder="請留下能聯絡到您的聯絡方式" required>
                     </div>
                     <div class="form-group">
                         <label>加入動機 (簡單描述) *</label>

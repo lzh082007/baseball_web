@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `form` (
   `form_level` varchar(50) DEFAULT NULL COMMENT '棒球程度 (初學者/有基礎)',
   `form_position` varchar(50) DEFAULT NULL COMMENT '守備位置 (可複選，如: 投手,外野手)',
   `form_motive` text DEFAULT NULL COMMENT '加入動機',
+  `form_contact` varchar(255) DEFAULT NULL COMMENT '聯絡資訊',
   PRIMARY KEY (`form_id`),
   KEY `team_id` (`team_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

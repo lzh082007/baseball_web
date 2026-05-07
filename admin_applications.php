@@ -62,7 +62,8 @@ foreach ($teams as $t) {
                                 </td>
                                 <td style="padding: 12px 15px; font-weight: 500; color: var(--primary);">
                                     <?= htmlspecialchars($app['form_name']) ?> <br>
-                                    <span style="font-size: 0.85em; color: #666;">(<?= htmlspecialchars($app['form_gender']) ?>)</span>
+                                    <span style="font-size: 0.85em; color: #666;">(<?= htmlspecialchars($app['form_gender']) ?>)</span><br>
+                                    <span style="font-size: 0.85em; color: var(--secondary);"><i class="fas fa-address-card"></i> <?= htmlspecialchars($app['form_contact']) ?></span>
                                 </td>
                                 <td style="padding: 12px 15px;">
                                     <?= htmlspecialchars($app['form_age']) ?> 歲 <br>

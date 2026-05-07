@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'account' => $account,
             'password' => $password,
             'name' => $name,
-            'role' => 'fan', // Default role; admin will adjust during approval if needed
+            'role' => 'player', // Default role; admin will adjust during approval if needed
             'status' => 'pending',
             'created_at' => date('Y-m-d H:i:s')
         ]);
