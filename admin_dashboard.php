@@ -64,6 +64,9 @@ $pendingMembers = array_filter($db->getAll('member'), function($m) {
             <a href="admin_history.php" class="admin-module-card hover-secondary">
                 <i class="fas fa-history"></i> 球隊歷史管理
             </a>
+            <a href="admin_members.php" class="admin-module-card hover-primary">
+                <i class="fas fa-user-cog"></i> 帳號與會員管理 (CRUD)
+            </a>
         </div>
     </div>
 </section>

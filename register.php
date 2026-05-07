@@ -14,13 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($existing) {
         $error = '這個帳號 (Email) 已經存在！請使用其他帳號或直接登入。';
     } else {
-        // Hash password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Insert new pending member
+        // Insert new pending member with plaintext password for admin to view
         $db->insert('member', [
             'account' => $account,
-            'password' => $hashedPassword,
+            'password' => $password,
             'name' => $name,
             'role' => 'fan', // Default role; admin will adjust during approval if needed
             'status' => 'pending',
@@ -65,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <input type="text" name="name" class="form-control" required placeholder="如：王大明" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
                 </div>
                 <div class="form-group login-form-group">
-                    <label>設定帳號 (建議為 Email)</label>
-                    <input type="email" name="account" class="form-control" required placeholder="example@gmail.com" value="<?= htmlspecialchars($_POST['account'] ?? '') ?>">
+                    <label>設定帳號 Account</label>
+                    <input type="text" name="account" class="form-control" required placeholder="請輸入您想設定的帳號" value="<?= htmlspecialchars($_POST['account'] ?? '') ?>">
                 </div>
                 <div class="form-group login-form-group">
                     <label>設定密碼 Password</label>

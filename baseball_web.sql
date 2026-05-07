@@ -264,9 +264,11 @@ DROP TABLE IF EXISTS `video`;
 CREATE TABLE IF NOT EXISTS `video` (
   `Video_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '影片唯一識別碼',
   `Team_Id` int(11) DEFAULT NULL COMMENT '關聯 Team.team_Id',
-  `tournament` varchar(100) DEFAULT NULL COMMENT '盃賽分類 (如：大專盃、練習賽)',
-  `youtube_url` varchar(255) DEFAULT NULL COMMENT 'YouTube 影片連結',
-  `title` varchar(200) DEFAULT NULL COMMENT '比賽標題',
+  `title` varchar(255) DEFAULT NULL COMMENT '影片標題',
+  `description` text DEFAULT NULL COMMENT '描述',
+  `url` varchar(255) DEFAULT NULL COMMENT 'YouTube 影片連結',
+  `date` date DEFAULT NULL COMMENT '日期',
+  `category` varchar(100) DEFAULT NULL COMMENT '分類',
   PRIMARY KEY (`Video_id`),
   KEY `fk_video_team` (`Team_Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
