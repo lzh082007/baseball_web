@@ -7,9 +7,12 @@
 /* ── Horizontal Timeline Wrapper（可橫向捲動） ── */
 .timeline-wrapper {
     overflow-x: auto;
+    overflow-y: visible;
     padding: 20px 0 30px;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) #eee;
+    /* 讓上方卡片不被裁切：給足夠的上方空間 */
+    margin-top: 10px;
 }
 .timeline-wrapper::-webkit-scrollbar { height: 5px; }
 .timeline-wrapper::-webkit-scrollbar-track { background: #eee; border-radius: 10px; }
@@ -21,9 +24,7 @@
     display: flex;
     align-items: center;
     min-width: max-content;
-    padding: 0 60px;
-    /* 上卡片高度(140) + 連接線(30) + 圓點(16) + 連接線(30) + 下卡片高度(140) */
-    height: 356px;
+    padding: 160px 60px;   /* 上下 padding 讓卡片有空間顯示，不被裁切 */
 }
 
 /* 水平主線 */
