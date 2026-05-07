@@ -16,14 +16,13 @@
 .timeline-wrapper::-webkit-scrollbar-track { background: #eee; border-radius: 10px; }
 .timeline-wrapper::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-/* ── 外層容器：固定高度，讓上下卡片都有空間 ── */
+/* ── 外層容器 ── */
 .timeline-container {
     position: relative;
     display: flex;
-    align-items: center;        /* 讓所有 item 對齊中線 */
+    align-items: stretch;
     min-width: max-content;
     padding: 0 60px;
-    height: 340px;              /* 上卡片 + 線 + 下卡片的總高 */
 }
 
 /* 水平主線 */
@@ -49,7 +48,38 @@
     flex-shrink: 0;
 }
 
-/* 圓點（絕對定位在中線上） */
+/* 奇數：卡片在上、連接線在上、圓點在中線 */
+.timeline-item:nth-child(odd) {
+    justify-content: flex-start;
+    padding-top: 0;
+}
+.timeline-item:nth-child(odd) .timeline-card {
+    order: 1;
+    margin-bottom: 0;
+}
+.timeline-item:nth-child(odd) .timeline-connector {
+    order: 2;
+}
+.timeline-item:nth-child(odd) .timeline-dot {
+    order: 3;
+}
+
+/* 偶數：圓點在中線、連接線在下、卡片在下 */
+.timeline-item:nth-child(even) {
+    justify-content: flex-end;
+    padding-bottom: 0;
+}
+.timeline-item:nth-child(even) .timeline-dot {
+    order: 1;
+}
+.timeline-item:nth-child(even) .timeline-connector {
+    order: 2;
+}
+.timeline-item:nth-child(even) .timeline-card {
+    order: 3;
+}
+
+/* 圓點 */
 .timeline-dot {
     width: 16px;
     height: 16px;
@@ -57,41 +87,18 @@
     border: 3px solid #fff;
     border-radius: 50%;
     box-shadow: 0 0 0 3px var(--primary);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     z-index: 2;
     flex-shrink: 0;
+    position: relative;
 }
 
-/* 連接線（圓點到卡片） */
+/* 連接線 */
 .timeline-connector {
     width: 2px;
     height: 30px;
     background: var(--primary);
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    flex-shrink: 0;
     z-index: 1;
-}
-
-/* 奇數：卡片在上方 */
-.timeline-item:nth-child(odd) .timeline-card {
-    top: calc(50% - 16px - 30px - 120px); /* 圓點半徑 + 連接線 + 卡片高度 */
-    position: absolute;
-}
-.timeline-item:nth-child(odd) .timeline-connector {
-    top: calc(50% - 16px - 30px);
-}
-
-/* 偶數：卡片在下方 */
-.timeline-item:nth-child(even) .timeline-card {
-    top: calc(50% + 16px + 30px);
-    position: absolute;
-}
-.timeline-item:nth-child(even) .timeline-connector {
-    top: calc(50% + 8px);
 }
 
 /* ── 卡片 ── */
