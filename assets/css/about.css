@@ -20,9 +20,11 @@
 .timeline-container {
     position: relative;
     display: flex;
-    align-items: stretch;
+    align-items: center;
     min-width: max-content;
     padding: 0 60px;
+    /* 上卡片高度(140) + 連接線(30) + 圓點(16) + 連接線(30) + 下卡片高度(140) */
+    height: 356px;
 }
 
 /* 水平主線 */
@@ -44,42 +46,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     width: 200px;
     flex-shrink: 0;
+    height: 100%;
 }
 
-/* 奇數：卡片在上、連接線在上、圓點在中線 */
-.timeline-item:nth-child(odd) {
-    justify-content: flex-start;
-    padding-top: 0;
-}
-.timeline-item:nth-child(odd) .timeline-card {
-    order: 1;
-    margin-bottom: 0;
-}
-.timeline-item:nth-child(odd) .timeline-connector {
-    order: 2;
-}
-.timeline-item:nth-child(odd) .timeline-dot {
-    order: 3;
-}
-
-/* 偶數：圓點在中線、連接線在下、卡片在下 */
-.timeline-item:nth-child(even) {
-    justify-content: flex-end;
-    padding-bottom: 0;
-}
-.timeline-item:nth-child(even) .timeline-dot {
-    order: 1;
-}
-.timeline-item:nth-child(even) .timeline-connector {
-    order: 2;
-}
-.timeline-item:nth-child(even) .timeline-card {
-    order: 3;
-}
-
-/* 圓點 */
+/* 圓點：固定在中線 */
 .timeline-dot {
     width: 16px;
     height: 16px;
@@ -87,9 +60,12 @@
     border: 3px solid #fff;
     border-radius: 50%;
     box-shadow: 0 0 0 3px var(--primary);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 2;
     flex-shrink: 0;
-    position: relative;
 }
 
 /* 連接線 */
@@ -97,8 +73,29 @@
     width: 2px;
     height: 30px;
     background: var(--primary);
-    flex-shrink: 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1;
+}
+
+/* 奇數：卡片在上，連接線從卡片底部到圓點頂部 */
+.timeline-item:nth-child(odd) .timeline-card {
+    position: absolute;
+    bottom: calc(50% + 8px + 30px);  /* 圓點半徑 + 連接線高度 */
+}
+.timeline-item:nth-child(odd) .timeline-connector {
+    bottom: calc(50% + 8px);
+    top: auto;
+}
+
+/* 偶數：卡片在下，連接線從圓點底部到卡片頂部 */
+.timeline-item:nth-child(even) .timeline-card {
+    position: absolute;
+    top: calc(50% + 8px + 30px);     /* 圓點半徑 + 連接線高度 */
+}
+.timeline-item:nth-child(even) .timeline-connector {
+    top: calc(50% + 8px);
 }
 
 /* ── 卡片 ── */
