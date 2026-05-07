@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     min-width: max-content;
-    padding: 160px 60px;   /* 上下 padding 讓卡片有空間顯示，不被裁切 */
+    padding: 250px 60px;   /* 上下 padding 讓卡片有空間顯示，不被裁切 */
 }
 
 /* 水平主線 */
