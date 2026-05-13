@@ -4,7 +4,7 @@ requireAdmin();
 
 $pendingApps = $db->getAll('form');
 
-$pendingMembers = array_filter($db->getAll('member'), function($m) {
+$pendingMembers = array_filter($db->getAll('member'), function ($m) {
     return $m['status'] == 'pending';
 });
 ?>
@@ -22,9 +22,10 @@ $pendingMembers = array_filter($db->getAll('member'), function($m) {
                 <i class="fas fa-file-signature" style="color: var(--primary);"></i>
                 <h3>待核准申請</h3>
                 <div class="admin-count"><?= count($pendingApps) ?></div>
-                <a href="admin_applications.php" class="admin-link primary">前往審核 <i class="fas fa-chevron-right"></i></a>
+                <a href="admin_applications.php" class="admin-link primary">前往審核 <i
+                        class="fas fa-chevron-right"></i></a>
             </div>
-            
+
             <div class="admin-summary-card secondary">
                 <i class="fas fa-user-plus" style="color: var(--secondary);"></i>
                 <h3>待審核成員</h3>
@@ -59,7 +60,7 @@ $pendingMembers = array_filter($db->getAll('member'), function($m) {
                 <i class="fas fa-video"></i> 影片專區管理
             </a>
             <a href="admin_contact.php" class="admin-module-card hover-primary">
-                <i class="fas fa-address-book"></i> 聯繫我們管理
+                <i class="fas fa-address-book"></i> 聯繫我們管理(頁尾)
             </a>
             <a href="admin_history.php" class="admin-module-card hover-secondary">
                 <i class="fas fa-history"></i> 球隊歷史管理
