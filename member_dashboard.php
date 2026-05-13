@@ -33,10 +33,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $updateData['password'] = password_hash($newPw, PASSWORD_DEFAULT);
             }
             $db->update('member', $user['mId'], $updateData);
+            
+            // 處理照片上傳 (存入 player 表)
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = 'uploads/players/';
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+                $filename = time() . '_' . basename($_FILES['profile_image']['name']);
+                $target_path = $upload_dir . $filename;
+                if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target_path)) {
+                    if ($playerData) {
+                        $db->update('player', $playerData['Player_id'], ['image_path' => $target_path]);
+                    } else {
+                        $db->insert('player', [
+                            'mId' => $user['mId'],
+                            'Team_Id' => 1,
+                            'Player_Name' => $newName,
+                            'image_path' => $target_path
+                        ]);
+                    }
+                }
+            }
+
             // 更新 session
             $_SESSION['user']['name'] = $newName;
             $user['name'] = $newName;
-            $msg = '基本資料已更新！';
+            $msg = '基本資料與照片已更新！';
         }
         $tab = 'settings';
     }
@@ -45,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update_stats') {
         $statsData = [
             'jersey_number'  => trim($_POST['jersey_number']),
-            'position'       => trim($_POST['position']),
+            'position'       => isset($_POST['position']) && is_array($_POST['position']) ? implode(',', $_POST['position']) : '',
             'height'         => (int)$_POST['height'] ?: null,
             'weight'         => (int)$_POST['weight'] ?: null,
             'pitching_speed' => (int)$_POST['pitching_speed'] ?: null,
@@ -101,6 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 <div class="section-title member-section-title">
                     <h2>數據概覽</h2>
                     <p>Personal Performance Overview</p>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
+                    <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
+                        <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
+                        <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div>
+                        <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
+                        <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
+                    </div>
                 </div>
 
                 <div class="member-stats-grid">
@@ -159,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--primary); padding-bottom:10px; display:inline-block;">
                             <i class="fas fa-id-card" style="margin-right:8px; color:var(--primary);"></i>基本資料
                         </h3>
-                        <form method="POST" action="member_dashboard.php?tab=settings">
+                        <form method="POST" action="member_dashboard.php?tab=settings" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="update_profile">
                             <div style="margin-bottom:16px;">
                                 <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">帳號</label>
@@ -178,11 +210,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"
                                     placeholder="輸入新密碼">
                             </div>
-                            <div style="margin-bottom:20px;">
+                            <div style="margin-bottom:16px;">
                                 <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">確認新密碼</label>
                                 <input type="password" name="confirm_password"
                                     style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"
                                     placeholder="再次輸入新密碼">
+                            </div>
+                            <div style="margin-bottom:20px;">
+                                <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">個人照片 <span style="color:#aaa; font-weight:400;">（建議比例 1:1）</span></label>
+                                <input type="file" name="profile_image" accept="image/*"
+                                    style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+                                <?php if ($playerData && !empty($playerData['image_path'])): ?>
+                                    <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                                        <img src="<?= htmlspecialchars($playerData['image_path']) ?>" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                                        <span style="font-size:0.8rem; color:#888;">目前已上傳照片</span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <button type="submit"
                                 style="width:100%; padding:11px; background:var(--primary); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.95rem;">
@@ -206,19 +249,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                         style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"
                                         placeholder="例：18">
                                 </div>
-                                <div>
-                                    <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">守備位置</label>
-                                    <select name="position"
-                                        style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
-                                        <option value="">— 請選擇 —</option>
-                                        <?php
-                                        $positions = ['投手','捕手','一壘手','二壘手','三壘手','游擊手','左外野手','中外野手','右外野手','內野手','外野手'];
-                                        foreach ($positions as $pos):
-                                            $sel = ($playerData && $playerData['position'] === $pos) ? 'selected' : '';
+                                <div style="grid-column: 1 / -1;">
+                                    <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">守備位置 (可複選)</label>
+                                    <div class="checkbox-group">
+                                        <?php 
+                                        $userPosArr = $playerData ? explode(',', $playerData['position']) : [];
+                                        $availablePositions = ['投手', '捕手', '內野手', '外野手', '教練'];
+                                        foreach ($availablePositions as $pos):
                                         ?>
-                                        <option value="<?= $pos ?>" <?= $sel ?>><?= $pos ?></option>
+                                            <label class="checkbox-item <?= in_array($pos, $userPosArr) ? 'active' : '' ?>" style="padding: 6px 12px; font-size: 0.85rem;">
+                                                <input type="checkbox" name="position[]" value="<?= $pos ?>" <?= in_array($pos, $userPosArr) ? 'checked' : '' ?> onchange="this.parentElement.classList.toggle('active', this.checked)">
+                                                <span><?= $pos ?></span>
+                                            </label>
                                         <?php endforeach; ?>
-                                    </select>
+                                    </div>
                                 </div>
                             </div>
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">

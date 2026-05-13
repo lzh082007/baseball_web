@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $gender = $_POST['gender'] ?? '';
     $age = $_POST['age'] ?? '';
     $school_system = $_POST['school_system'] ?? ''; // 五專、大學、碩士...
-    $position = $_POST['position'] ?? '';
+    $position = isset($_POST['position']) && is_array($_POST['position']) ? implode(',', $_POST['position']) : ($_POST['position'] ?? '');
     $motivation = $_POST['motivation'] ?? '';
 
     if ($name && $gender && $age) {
@@ -91,8 +91,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>預期守位 (非必填)</label>
-                        <input type="text" name="position" class="form-control" placeholder="如：投手、內野手...">
+                        <label>預期守位 (可複選)</label>
+                        <div class="checkbox-group">
+                            <?php 
+                            $availablePos = ['投手', '捕手', '內野手', '外野手'];
+                            foreach ($availablePos as $p):
+                            ?>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="position[]" value="<?= $p ?>" onchange="this.parentElement.classList.toggle('active', this.checked)">
+                                    <span><?= $p ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>聯絡資訊 (LINE ID / 手機號碼 / IG ID) *</label>

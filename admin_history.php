@@ -48,6 +48,9 @@ $teams = $db->getAll('team');
 
 <section>
     <div class="container">
+        <a href="admin_dashboard.php" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> 返回控制台
+        </a>
         <?php if ($msg): ?>
             <div class="admin-msg-box" style="background: var(--primary); color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px;">
                 <?= htmlspecialchars($msg) ?>

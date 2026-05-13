@@ -141,6 +141,30 @@ nav {
     font-weight: 500;
 }
 
+.admin-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--bg-dark);
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: 30px;
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: var(--transition);
+    font-size: 0.85rem;
+}
+
+.admin-back-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
 .hero {
     display: none; /* Hide old hero */
 }
@@ -305,6 +329,54 @@ footer {
     background: #A00000;
 }
 
+/* Checkbox Styles */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f9f9f9;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.checkbox-item:hover {
+    background: #fff;
+    border-color: var(--primary);
+}
+
+.checkbox-item input {
+    display: none;
+}
+
+.checkbox-item input:checked + span {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.checkbox-item input:checked + span::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 8px;
+}
+
+.checkbox-item.active {
+    background: #fff;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
 /* Utils */
 .container {
     max-width: 1200px;
@@ -315,3 +387,45 @@ footer {
 .badge { padding: 5px 15px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; }
 .badge-win { background: #E1F5FE; color: #01579B; border: 1px solid #01579B; }
 .badge-loss { background: #FFEBEE; color: #B71C1C; border: 1px solid #B71C1C; }
+
+/* Global Search Bar */
+.search-bar-container {
+    display: flex;
+    gap: 10px;
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    margin-bottom: 30px;
+}
+.search-bar-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: var(--transition);
+}
+.search-bar-input:focus {
+    border-color: var(--primary);
+}
+.search-bar-btn {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.search-bar-btn:hover {
+    background: #A00000;
+    transform: translateY(-2px);
+}

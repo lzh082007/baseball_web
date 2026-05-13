@@ -28,6 +28,9 @@ foreach ($teams as $t) {
 
 <section>
     <div class="container">
+        <a href="admin_dashboard.php" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> 返回控制台
+        </a>
         <?php if ($msg): ?>
             <div class="admin-msg-box" style="background: var(--primary); color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px;">
                 <?= $msg ?>
@@ -35,9 +38,6 @@ foreach ($teams as $t) {
         <?php endif; ?>
 
         <div class="admin-list-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto;">
-            <div style="margin-bottom: 20px;">
-                <a href="admin_dashboard.php" style="color: var(--secondary); text-decoration: none; font-weight: bold;"><i class="fas fa-arrow-left"></i> 返回控制台</a>
-            </div>
             
             <table class="admin-table" style="width: 100%; border-collapse: collapse;">
                 <thead>

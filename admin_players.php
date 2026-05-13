@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'Team_Id' => (int)$_POST['team_id'],
             'Player_Name' => $_POST['name'],
             'jersey_number' => (int)$_POST['jersey_number'],
-            'position' => $_POST['position'],
+            'position' => isset($_POST['position']) && is_array($_POST['position']) ? implode(',', $_POST['position']) : '',
             'height' => (int)$_POST['height'],
             'weight' => (int)$_POST['weight'],
             'image_path' => $image_path
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'Team_Id' => (int)$_POST['team_id'],
             'Player_Name' => $_POST['name'],
             'jersey_number' => (int)$_POST['jersey_number'],
-            'position' => $_POST['position'],
+            'position' => isset($_POST['position']) && is_array($_POST['position']) ? implode(',', $_POST['position']) : '',
             'height' => (int)$_POST['height'],
             'weight' => (int)$_POST['weight']
         ];
@@ -72,6 +72,9 @@ $teams = $db->getAll('team');
 
 <section>
     <div class="container">
+        <a href="admin_dashboard.php" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> 返回控制台
+        </a>
         <?php if ($msg): ?>
             <div class="admin-msg-box">
                 <?= $msg ?>
@@ -95,15 +98,19 @@ $teams = $db->getAll('team');
                         <input type="number" name="jersey_number" class="form-control" value="<?= $editRecord ? htmlspecialchars($editRecord['jersey_number']) : '' ?>" required>
                     </div>
                     <div class="form-group">
-                        <label>守位</label>
-                        <select name="position" class="form-control">
-                            <?php $pos = $editRecord ? $editRecord['position'] : ''; ?>
-                            <option value="投手" <?= $pos=='投手'?'selected':'' ?>>投手</option>
-                            <option value="捕手" <?= $pos=='捕手'?'selected':'' ?>>捕手</option>
-                            <option value="內野手" <?= $pos=='內野手'?'selected':'' ?>>內野手</option>
-                            <option value="外野手" <?= $pos=='外野手'?'selected':'' ?>>外野手</option>
-                            <option value="教練" <?= $pos=='教練'?'selected':'' ?>>教練</option>
-                        </select>
+                        <label>守位 (可複選)</label>
+                        <div class="checkbox-group">
+                            <?php 
+                            $posArr = $editRecord ? explode(',', $editRecord['position']) : []; 
+                            $availablePos = ['投手', '捕手', '內野手', '外野手', '教練'];
+                            foreach ($availablePos as $p):
+                            ?>
+                                <label class="checkbox-item <?= in_array($p, $posArr) ? 'active' : '' ?>">
+                                    <input type="checkbox" name="position[]" value="<?= $p ?>" <?= in_array($p, $posArr) ? 'checked' : '' ?> onchange="this.parentElement.classList.toggle('active', this.checked)">
+                                    <span><?= $p ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>所屬球隊</label>

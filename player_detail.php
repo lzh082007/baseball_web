@@ -30,7 +30,7 @@ $performances = array_filter($db->getAll('playerrecord'), function($p) use ($pla
                 <img src="<?= $imgSrc ?>" alt="<?= htmlspecialchars($player['Player_Name']) ?>" class="player-portrait-img">
                 <div class="player-portrait-info">
                     <h2 class="player-portrait-name"><?= htmlspecialchars($player['Player_Name']) ?></h2>
-                    <p class="player-portrait-subtitle"><?= htmlspecialchars($player['position']) ?> | #<?= $player['jersey_number'] ?></p>
+                    <p class="player-portrait-subtitle"><?= str_replace(',', ' / ', htmlspecialchars($player['position'])) ?> | #<?= $player['jersey_number'] ?></p>
                 </div>
             </div>
 

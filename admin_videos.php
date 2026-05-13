@@ -45,6 +45,9 @@ $videos = $db->getAll('video');
 
 <section>
     <div class="container">
+        <a href="admin_dashboard.php" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> 返回控制台
+        </a>
         <?php if ($msg): ?>
             <div class="admin-msg-box" style="background: var(--primary); color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px;">
                 <?= $msg ?>
@@ -68,14 +71,8 @@ $videos = $db->getAll('video');
                         <input type="url" name="url" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" placeholder="https://www.youtube.com/embed/..." value="<?= $editRecord ? htmlspecialchars($editRecord['url']) : '' ?>" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">分類</label>
-                        <select name="category" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
-                            <?php $cat = $editRecord ? $editRecord['category'] : ''; ?>
-                            <option value="比賽精華" <?= $cat == '比賽精華' ? 'selected' : '' ?>>比賽精華</option>
-                            <option value="訓練解析" <?= $cat == '訓練解析' ? 'selected' : '' ?>>訓練解析</option>
-                            <option value="科學分析" <?= $cat == '科學分析' ? 'selected' : '' ?>>科學分析</option>
-                            <option value="團隊戰術" <?= $cat == '團隊戰術' ? 'selected' : '' ?>>團隊戰術</option>
-                        </select>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">分類 (請手動輸入)</label>
+                        <input type="text" name="category" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" placeholder="例如：比賽精華、訓練解析..." value="<?= $editRecord ? htmlspecialchars($editRecord['category']) : '' ?>" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">日期</label>

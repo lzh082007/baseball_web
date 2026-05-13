@@ -3,10 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 13 日 11:42
+-- 產生時間： 2026 年 05 月 13 日 17:19
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
+SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -62,7 +63,7 @@ CREATE TABLE `form` (
   `form_age` int(11) DEFAULT NULL COMMENT '年齡',
   `form_education` varchar(50) DEFAULT NULL COMMENT '學制 (五專/四技等)',
   `form_level` varchar(50) DEFAULT NULL COMMENT '棒球程度 (初學者/有基礎)',
-  `form_position` varchar(50) DEFAULT NULL COMMENT '守備位置 (可複選，如: 投手,外野手)',
+  `form_position` varchar(255) DEFAULT NULL,
   `form_motive` text DEFAULT NULL COMMENT '加入動機',
   `form_contact` varchar(255) DEFAULT NULL COMMENT '聯絡資訊'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -173,6 +174,12 @@ CREATE TABLE `news` (
 -- 資料表的關聯 `news`:
 --
 
+--
+-- 傾印資料表的資料 `news`
+--
+
+INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`) VALUES(6, '測試', '5/12', '2026-05-13 23:15:09');
+
 -- --------------------------------------------------------
 
 --
@@ -208,7 +215,7 @@ CREATE TABLE `player` (
   `mId` int(11) DEFAULT NULL COMMENT '關聯 Member.mId (僅限本校球員，可為 NULL)',
   `Player_Name` varchar(50) NOT NULL COMMENT '球員姓名',
   `jersey_number` varchar(10) DEFAULT NULL COMMENT '背號 (如: 18, 93)',
-  `position` varchar(20) DEFAULT NULL COMMENT '守位',
+  `position` varchar(255) DEFAULT NULL,
   `height` int(11) DEFAULT NULL COMMENT '身高 (cm)',
   `weight` int(11) DEFAULT NULL COMMENT '體重 (kg)',
   `pitching_speed` int(11) DEFAULT NULL COMMENT '球速 (km/h)',
@@ -227,7 +234,7 @@ CREATE TABLE `player` (
 -- 傾印資料表的資料 `player`
 --
 
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(8, 1, 4, '劉詠傑', '21', '投手', 180, 80, 127, 'uploads/players/1778663574_IMG_3109.JPG');
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(8, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 80, 127, 'uploads/players/1778663574_IMG_3109.JPG');
 
 -- --------------------------------------------------------
 
@@ -483,7 +490,7 @@ ALTER TABLE `member`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `news`
 --
 ALTER TABLE `news`
-  MODIFY `news_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '消息識別碼', AUTO_INCREMENT=6;
+  MODIFY `news_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '消息識別碼', AUTO_INCREMENT=7;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `ob`
@@ -587,6 +594,7 @@ ALTER TABLE `teamhistory`
 --
 ALTER TABLE `video`
   ADD CONSTRAINT `fk_video_team` FOREIGN KEY (`Team_Id`) REFERENCES `team` (`team_Id`);
+SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
