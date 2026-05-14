@@ -3,11 +3,10 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 14 日 03:48
+-- 產生時間： 2026 年 05 月 14 日 11:50
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
-SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -32,7 +31,8 @@ DROP TABLE IF EXISTS `contact_us`;
 CREATE TABLE `contact_us` (
   `id` int(11) NOT NULL,
   `icon_class` varchar(50) NOT NULL,
-  `content_text` varchar(255) NOT NULL
+  `content_text` varchar(255) NOT NULL,
+  `link` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -43,10 +43,10 @@ CREATE TABLE `contact_us` (
 -- 傾印資料表的資料 `contact_us`
 --
 
-INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`) VALUES(1, 'fas fa-map-marker-alt', '國立臺中科技大學 體育中心');
-INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`) VALUES(2, 'fas fa-envelope', 'nutc_baseball@edu.tw');
-INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`) VALUES(3, 'fas fa-phone', '04-2219-XXXX');
-INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`) VALUES(5, 'fab fa-instagram-square', 'instagram');
+INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`, `link`) VALUES(1, 'fas fa-map-marker-alt', '國立臺中科技大學 體育中心', NULL);
+INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`, `link`) VALUES(2, 'fas fa-envelope', 'nutc_baseball@edu.tw', NULL);
+INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`, `link`) VALUES(3, 'fas fa-phone', '04-2219-XXXX', NULL);
+INSERT INTO `contact_us` (`id`, `icon_class`, `content_text`, `link`) VALUES(5, 'fab fa-instagram-square', 'instagram', 'https://www.instagram.com/nutc_baseball?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==');
 
 -- --------------------------------------------------------
 
@@ -155,6 +155,7 @@ CREATE TABLE `member` (
 INSERT INTO `member` (`mId`, `account`, `password`, `name`, `role`, `status`, `created_at`) VALUES(1, 'admin', 'admin', '管理者(Admin)', 'admin', 'active', '2026-05-13 11:00:08');
 INSERT INTO `member` (`mId`, `account`, `password`, `name`, `role`, `status`, `created_at`) VALUES(2, 'user1', '123', '管理者(User1)', 'admin', 'active', '2026-05-13 11:00:08');
 INSERT INTO `member` (`mId`, `account`, `password`, `name`, `role`, `status`, `created_at`) VALUES(4, 'Jeff', 'jeff', '劉詠傑', 'player', 'active', '2026-05-13 11:09:37');
+INSERT INTO `member` (`mId`, `account`, `password`, `name`, `role`, `status`, `created_at`) VALUES(5, 'ting', 'j11995665', '黃郁婷', 'admin', 'active', '2026-05-14 05:39:35');
 
 -- --------------------------------------------------------
 
@@ -167,7 +168,8 @@ CREATE TABLE `news` (
   `news_id` int(11) NOT NULL COMMENT '消息識別碼',
   `title` varchar(200) NOT NULL COMMENT '消息標題',
   `content` text NOT NULL COMMENT '消息內容',
-  `created_at` datetime DEFAULT current_timestamp() COMMENT '發布時間'
+  `created_at` datetime DEFAULT current_timestamp() COMMENT '發布時間',
+  `link` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -178,8 +180,8 @@ CREATE TABLE `news` (
 -- 傾印資料表的資料 `news`
 --
 
-INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`) VALUES(6, '測試', '5/12', '2026-05-13 23:15:09');
-INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`) VALUES(7, '一般組全國賽 SSU新聞', 'https://www.ssu.org.tw/News/Detail/3b9b26c7-1d85-4935-8a4a-c99fd658d5e8', '2026-05-14 09:19:56');
+INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`, `link`) VALUES(6, '測試', '5/12', '2026-05-13 23:15:09', NULL);
+INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`, `link`) VALUES(7, '一般組全國賽 SSU新聞文', '114學年度UBL大專棒球聯賽一般組全國賽進入小組預賽最後一日，國立高雄科技大學帶著一勝一敗戰績，在立德棒球場迎戰國立臺中科技大學。兩隊仍保有晉級機會，此役形同背水一戰。高科靠著許少瑄主投5局飆出9次三振穩住戰局，並在二局單局攻下5分完成逆轉，終場以9:2五局扣倒中科，續命保住晉級希望。\r\n中科開賽即先聲奪人。一局上林碁晟敲出內野安打展開攻勢，王駿丞補上二安攻佔得點圈，隨後透過野選與對手失誤跑回2分，取得2:0領先。\r\n二局下，高科黃柏叡、林毓珩、李毓恆接連敲安串聯攻勢，施宥廷把握得點圈機會，一棒掃出左外野方向三壘安打，帶有3分打點，單局灌進5分完成逆轉，將比分改寫為5:2。\r\n四局下高科再添保險分。施宥廷與林恩宇連續二壘安打擴大差距。五局下攻勢持續延燒，黃柏叡、林毓珩、李毓恆再度串聯安打送回2分，代打張鈞展擊出二壘方向滾地球，壘上跑者趁勢衝回本壘得分，比數拉開至9:2，提前結束比賽。\r\n高科施宥廷2支2，含一支3分打點三安與一支二安，成為高科逆轉關鍵火力。攝／許靜玟\r\n高科施宥廷2支2，含一支3分打點三安與一支二安，成為高科逆轉關鍵火力。攝／許靜玟\r\n此役高科先發投手許少瑄展現壓制力，主投5局僅用62球，被敲兩支安打，失1分自責分，送出9次三振，成功封鎖中科後段反攻氣勢，賽後防禦率1.80，收下本場勝投。\r\n許少瑄表示，此役是自己在本屆賽事中首度登板，「就是順順丟，把握機會。」球隊曾停止運作一年，他坦言球隊人數不多，「我們就是一場一場打，把每一場都當最後一場。」\r\n中科隊長劉詠傑則表示，抽籤出爐時便知道本組強度高，「但我們不希望因為對手是誰，就改變自己的打法，我們就是打自己的球。」本屆是劉詠傑第四次參加大專棒球聯賽，他指出球隊四年都晉級全國賽，曾闖進16強，今年卻止步小組賽，難免遺憾。\r\n「這三場真的很不簡單，辛苦大家了。」劉詠傑說道。身為隊長，他語氣堅定，「我相信我們不只是這樣，希望學弟們明年可以準備得更好，把成績再往上推。」\r\n隨著小組賽落幕，高科在關鍵戰拿下勝利，保住晉級希望，將於明(5)日迎戰東海大學，力拚16強。\r\n ', '2026-05-14 09:19:56', 'https://www.ssu.org.tw/News/Detail/3b9b26c7-1d85-4935-8a4a-c99fd658d5e8');
 
 -- --------------------------------------------------------
 
@@ -244,7 +246,7 @@ CREATE TABLE `player` (
 -- 傾印資料表的資料 `player`
 --
 
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(8, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 80, 127, 'uploads/players/1778663574_IMG_3109.JPG');
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(8, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 79, 127, 'uploads/players/1778663574_IMG_3109.JPG');
 
 -- --------------------------------------------------------
 
@@ -373,6 +375,7 @@ CREATE TABLE `video` (
 --
 
 INSERT INTO `video` (`Video_id`, `Team_Id`, `title`, `description`, `url`, `date`, `category`) VALUES(1, NULL, '114大專盃排名賽vs臺灣體大', '114大專盃排名賽vs臺灣體大', 'https://youtube.com/playlist?list=PL7QoN_5StDVPwuKoIFjHypu3IHfo4k4ie&si=CJm79C5FZGOyefZh', '2025-12-14', '比賽紀錄');
+INSERT INTO `video` (`Video_id`, `Team_Id`, `title`, `description`, `url`, `date`, `category`) VALUES(2, NULL, '114大專盃預賽vs中興大學', '114大專盃預賽vs中興大學', 'https://youtube.com/playlist?list=PL7QoN_5StDVMiLCn692J_hSu8cPeBaqX4&si=Pnyd-AnEKYJTlT1R', '2025-12-02', '比賽紀錄');
 
 --
 -- 已傾印資料表的索引
@@ -500,7 +503,7 @@ ALTER TABLE `gamerecord`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `member`
 --
 ALTER TABLE `member`
-  MODIFY `mId` int(11) NOT NULL AUTO_INCREMENT COMMENT '會員唯一識別碼', AUTO_INCREMENT=5;
+  MODIFY `mId` int(11) NOT NULL AUTO_INCREMENT COMMENT '會員唯一識別碼', AUTO_INCREMENT=6;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `news`
@@ -548,7 +551,7 @@ ALTER TABLE `teamhistory`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `video`
 --
 ALTER TABLE `video`
-  MODIFY `Video_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '影片唯一識別碼', AUTO_INCREMENT=2;
+  MODIFY `Video_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '影片唯一識別碼', AUTO_INCREMENT=3;
 
 --
 -- 已傾印資料表的限制式
@@ -610,7 +613,6 @@ ALTER TABLE `teamhistory`
 --
 ALTER TABLE `video`
   ADD CONSTRAINT `fk_video_team` FOREIGN KEY (`Team_Id`) REFERENCES `team` (`team_Id`);
-SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

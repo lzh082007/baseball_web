@@ -95,8 +95,38 @@ nav {
     transform: translateY(-3px);
 }
 
+.header-nav-link,
+.nav-links a {
+    color: var(--text-white); /* Default: White */
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    text-transform: uppercase;
+    display: inline-block;
+    letter-spacing: 1px;
+    opacity: 0.85;
+}
+
+.header-nav-link:hover,
+.nav-links a:hover {
+    color: var(--secondary) !important;
+    transform: translateY(-3px);
+}
+
+.header-nav-link.active,
 .nav-links li.active a {
-    color: var(--primary);
+    color: var(--primary) !important;
+}
+
+/* Specific Gold Links for My Data & Admin */
+.gold-link {
+    color: var(--secondary) !important;
+    opacity: 1;
+}
+.gold-link:hover,
+.gold-link.active {
+    color: var(--primary) !important;
 }
 
 .btn-login {
@@ -116,15 +146,15 @@ nav {
 
 /* Page Header (Replacing Hero) */
 .page-header {
-    padding: 60px 5%;
+    padding: 25px 5%; /* Even shorter */
     background-color: #fff;
     border-bottom: 2px solid var(--primary);
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     text-align: left;
 }
 
 .page-header h1 {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 900;
     color: var(--bg-dark);
     text-transform: uppercase;
@@ -135,9 +165,9 @@ nav {
 }
 
 .page-header p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #666;
-    margin-top: 10px;
+    margin-top: 5px;
     font-weight: 500;
 }
 
@@ -329,6 +359,39 @@ footer {
     background: #A00000;
 }
 
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-table th {
+    background: #f8f9fa;
+    font-weight: 700;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+}
+
+.admin-table tr:hover {
+    background: #fdfdfd;
+}
+
+/* Ensure Action buttons don't overflow */
+.admin-table th:last-child,
+.admin-table td:last-child {
+    text-align: center;
+    width: 180px;
+    min-width: 180px;
+    white-space: nowrap;
+}
+
 /* Checkbox Styles */
 .checkbox-group {
     display: grid;
@@ -421,7 +484,7 @@ footer {
 }
 .search-bar-btn {
     height: 100%;
-    padding: 0 25px;
+    padding: 0 30px; /* Increased padding */
     background: var(--primary);
     color: white;
     border: none;
@@ -434,6 +497,7 @@ footer {
     justify-content: center;
     gap: 8px;
     white-space: nowrap;
+    flex-shrink: 0; /* Prevent the button from being squashed */
 }
 .search-bar-btn:hover {
     background: #A00000;

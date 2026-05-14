@@ -57,21 +57,19 @@
                 <li class="<?= basename($_SERVER['PHP_SELF']) == 'players.php' ? 'active' : '' ?>"><a href="players.php">球員陣容</a></li>
                 <li class="<?= basename($_SERVER['PHP_SELF']) == 'join.php' ? 'active' : '' ?>"><a href="join.php">招募資訊</a></li>
                 <li class="<?= basename($_SERVER['PHP_SELF']) == 'ob.php' ? 'active' : '' ?>"><a href="ob.php">OB 專區</a></li>
-                <?php if (isLoggedIn()): ?>
-                    <li class="<?= strpos($_SERVER['PHP_SELF'], 'dashboard') !== false ? 'active' : '' ?>"><a href="member_dashboard.php">我的數據</a></li>
-                <?php endif; ?>
             </ul>
         </div>
 
-        <div class="user-action">
+        <div class="user-action" style="display: flex; align-items: center; gap: 20px;">
             <?php if (isLoggedIn()): ?>
+                <a href="member_dashboard.php" class="header-nav-link gold-link <?= basename($_SERVER['PHP_SELF']) == 'member_dashboard.php' ? 'active' : '' ?>">我的數據</a>
                 <?php if (isAdmin()): ?>
-                    <a href="admin_dashboard.php" style="margin-right: 15px; color: var(--secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700;">管理後台</a>
+                    <a href="admin_dashboard.php" class="header-nav-link gold-link <?= strpos(basename($_SERVER['PHP_SELF']), 'admin_') === 0 ? 'active' : '' ?>">管理後台</a>
                 <?php endif; ?>
                 <a href="logout.php" class="btn-login" style="background: transparent; color: var(--text-white); border: 2px solid var(--primary); padding: 5px 15px; font-size: 0.8rem;">登出</a>
             <?php else: ?>
                 <a href="login.php" class="btn-login" style="padding: 5px 20px; font-size: 0.9rem;">登入</a>
-                <a href="register.php" style="margin-left: 10px; color: var(--text-white); text-decoration: none; font-size: 0.8rem;">註冊</a>
+                <a href="register.php" class="header-nav-link <?= basename($_SERVER['PHP_SELF']) == 'register.php' ? 'active' : '' ?>" style="margin-left: 10px;">註冊</a>
             <?php endif; ?>
         </div>
     </nav>

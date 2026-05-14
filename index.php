@@ -34,7 +34,7 @@ usort($newsList, function($a, $b) {
             <div class="section-title" style="margin-bottom: 0;">
                 <h2 style="margin-bottom: 0;">最新動態</h2>
             </div>
-            <form method="GET" class="search-bar-container" style="margin-bottom: 0; max-width: 350px;">
+            <form method="GET" class="search-bar-container" style="margin-bottom: 0; max-width: 400px;">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋消息..." value="<?= htmlspecialchars($search) ?>">
                 <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋動態</button>
             </form>
@@ -47,14 +47,17 @@ usort($newsList, function($a, $b) {
                 </div>
             <?php else: ?>
                 <?php foreach ($newsList as $index => $news): ?>
-                    <div class="card home-news-card" data-index="<?= $index ?>" style="<?= $index >= 3 ? 'display: none;' : '' ?>">
+                    <a href="<?= !empty($news['link']) ? htmlspecialchars($news['link']) : 'javascript:void(0)' ?>" 
+                       class="card home-news-card" 
+                       data-index="<?= $index ?>" 
+                       style="<?= $index >= 3 ? 'display: none;' : '' ?> text-decoration: none; color: inherit; cursor: <?= !empty($news['link']) ? 'pointer' : 'default' ?>;">
                         <div class="card-content">
                             <span class="card-tag">官方消息</span>
                             <h3 class="card-title"><?= htmlspecialchars($news['title']) ?></h3>
                             <p class="news-date"><?= date('Y-m-d', strtotime($news['created_at'])) ?></p>
                             <p class="news-excerpt"><?= mb_substr(htmlspecialchars($news['content']), 0, 45) ?>...</p>
                         </div>
-                    </div>
+                    </a>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>

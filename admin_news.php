@@ -7,18 +7,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add'])) {
         $db->insert('news', [
             'title' => $_POST['title'],
-            'content' => $_POST['content']
-            // created_at will use DB default current_timestamp() if handled by DB,
-            // or we can let the Database.php insert handle it. 
-            // In Database.php we see created_at is strictly handled for member table,
-            // but news table has DEFAULT current_timestamp(). So we don't need to specify it.
+            'content' => $_POST['content'],
+            'link' => $_POST['link']
         ]);
         $msg = '最新消息新增成功！';
     }
     if (isset($_POST['update'])) {
         $db->update('news', $_POST['news_id'], [
             'title' => $_POST['title'],
-            'content' => $_POST['content']
+            'content' => $_POST['content'],
+            'link' => $_POST['link']
         ]);
         $msg = '最新消息修改成功！';
     }
@@ -69,9 +67,14 @@ usort($newsRecords, function($a, $b) {
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">標題</label>
                         <input type="text" name="title" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" value="<?= $editRecord ? htmlspecialchars($editRecord['title']) : '' ?>" required>
                     </div>
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">內容</label>
-                        <textarea name="content" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; resize: vertical;" rows="8" required><?= $editRecord ? htmlspecialchars($editRecord['content']) : '' ?></textarea>
+                        <textarea name="content" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; resize: vertical;" rows="5" required><?= $editRecord ? htmlspecialchars($editRecord['content']) : '' ?></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">連結網址 (選填)</label>
+                        <input type="text" name="link" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;" placeholder="例如: https://..." value="<?= $editRecord ? htmlspecialchars($editRecord['link'] ?? '') : '' ?>">
+                        <small style="color: #888; margin-top: 5px; display: block;">若輸入連結，首頁卡片點選後將直接跳轉至此網址。</small>
                     </div>
                     <?php if ($editRecord): ?>
                         <button type="submit" name="update" class="btn-submit" style="width: 100%; padding: 12px; background: var(--secondary); color: #1a1a1a; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: opacity 0.3s;">儲存修改</button>
@@ -88,20 +91,26 @@ usort($newsRecords, function($a, $b) {
                 <table class="admin-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 50%;">標題</th>
-                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 30%;">發佈時間</th>
-                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 20%;">操作</th>
+                            <th style="padding: 12px 15px; text-align: left; color: #333;">標題</th>
+                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 150px;">連結網址</th>
+                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 180px;">發佈時間</th>
+                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 180px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($newsRecords)): ?>
                         <tr>
-                            <td colspan="3" style="padding: 20px; text-align: center; color: #777;">目前沒有最新消息。</td>
+                            <td colspan="4" style="padding: 20px; text-align: center; color: #777;">目前沒有最新消息。</td>
                         </tr>
                         <?php else: ?>
                             <?php foreach ($newsRecords as $news): ?>
                                 <tr style="border-bottom: 1px solid #eee; transition: background 0.3s;">
                                     <td style="padding: 12px 15px; font-weight: 500; color: var(--primary);"><?= htmlspecialchars($news['title']) ?></td>
+                                    <td style="padding: 12px 15px; color: #666;">
+                                        <div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= !empty($news['link']) ? htmlspecialchars($news['link']) : '' ?>">
+                                            <?= !empty($news['link']) ? htmlspecialchars($news['link']) : '<span style="color: #ccc;">無</span>' ?>
+                                        </div>
+                                    </td>
                                     <td style="padding: 12px 15px; color: #666;"><?= htmlspecialchars($news['created_at']) ?></td>
                                     <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                                         <a href="admin_news.php?edit_id=<?= $news['news_id'] ?>" class="admin-action-btn admin-btn-edit"><i class="fas fa-edit"></i> 修改</a>

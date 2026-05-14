@@ -84,13 +84,13 @@ $contacts = $db->getAll('contact_us');
 
             <!-- Contacts List -->
             <div class="admin-list-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto;">
-                <table class="admin-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 15%;">圖示預覽</th>
-                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 45%;">文字內容</th>
-                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 20%;">連結</th>
-                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 20%;">操作</th>
+                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 100px;">圖示預覽</th>
+                            <th style="padding: 12px 15px; text-align: left; color: #333;">文字內容</th>
+                            <th style="padding: 12px 15px; text-align: left; color: #333; width: 150px;">連結</th>
+                            <th style="padding: 12px 15px; text-align: center; color: #333; width: 180px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -108,8 +108,10 @@ $contacts = $db->getAll('contact_us');
                                         <?= htmlspecialchars($c['content_text']) ?>
                                         <div style="font-size: 0.8em; color: #999; margin-top: 4px;"><?= htmlspecialchars($c['icon_class']) ?></div>
                                     </td>
-                                    <td style="padding: 12px 15px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?= !empty($c['link']) ? htmlspecialchars($c['link']) : '' ?>">
-                                        <?= !empty($c['link']) ? htmlspecialchars($c['link']) : '<span style="color: #ccc;">無</span>' ?>
+                                    <td style="padding: 12px 15px; color: #666;">
+                                        <div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= !empty($c['link']) ? htmlspecialchars($c['link']) : '' ?>">
+                                            <?= !empty($c['link']) ? htmlspecialchars($c['link']) : '<span style="color: #ccc;">無</span>' ?>
+                                        </div>
                                     </td>
                                     <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                                         <a href="admin_contact.php?edit_id=<?= $c['id'] ?>" style="background: #ffc107; color: #212529; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s; text-decoration: none; font-size: 0.9rem; margin-right: 5px;"><i class="fas fa-edit"></i> 修改</a>
