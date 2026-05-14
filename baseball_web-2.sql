@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 13 日 17:19
+-- 產生時間： 2026 年 05 月 14 日 03:48
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
@@ -179,6 +179,7 @@ CREATE TABLE `news` (
 --
 
 INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`) VALUES(6, '測試', '5/12', '2026-05-13 23:15:09');
+INSERT INTO `news` (`news_id`, `title`, `content`, `created_at`) VALUES(7, '一般組全國賽 SSU新聞', 'https://www.ssu.org.tw/News/Detail/3b9b26c7-1d85-4935-8a4a-c99fd658d5e8', '2026-05-14 09:19:56');
 
 -- --------------------------------------------------------
 
@@ -201,6 +202,15 @@ CREATE TABLE `ob` (
 --   `Team_Id`
 --       `team` -> `team_Id`
 --
+
+--
+-- 傾印資料表的資料 `ob`
+--
+
+INSERT INTO `ob` (`Ob_id`, `Team_Id`, `OB_name`, `graduation_year`, `status`, `image_path`) VALUES(4, 1, '蔡承庭', 113, '在中興大學當魔鷹', NULL);
+INSERT INTO `ob` (`Ob_id`, `Team_Id`, `OB_name`, `graduation_year`, `status`, `image_path`) VALUES(5, 1, '徐崇舜', 114, '在馬祖報效國家', NULL);
+INSERT INTO `ob` (`Ob_id`, `Team_Id`, `OB_name`, `graduation_year`, `status`, `image_path`) VALUES(6, 1, '范光磊', 114, NULL, NULL);
+INSERT INTO `ob` (`Ob_id`, `Team_Id`, `OB_name`, `graduation_year`, `status`, `image_path`) VALUES(7, 1, '游安田', 114, '休學超廢，沒有啦哈哈哈', NULL);
 
 -- --------------------------------------------------------
 
@@ -359,6 +369,12 @@ CREATE TABLE `video` (
 --
 
 --
+-- 傾印資料表的資料 `video`
+--
+
+INSERT INTO `video` (`Video_id`, `Team_Id`, `title`, `description`, `url`, `date`, `category`) VALUES(1, NULL, '114大專盃排名賽vs臺灣體大', '114大專盃排名賽vs臺灣體大', 'https://youtube.com/playlist?list=PL7QoN_5StDVPwuKoIFjHypu3IHfo4k4ie&si=CJm79C5FZGOyefZh', '2025-12-14', '比賽紀錄');
+
+--
 -- 已傾印資料表的索引
 --
 
@@ -490,13 +506,13 @@ ALTER TABLE `member`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `news`
 --
 ALTER TABLE `news`
-  MODIFY `news_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '消息識別碼', AUTO_INCREMENT=7;
+  MODIFY `news_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '消息識別碼', AUTO_INCREMENT=8;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `ob`
 --
 ALTER TABLE `ob`
-  MODIFY `Ob_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '校友 ID', AUTO_INCREMENT=4;
+  MODIFY `Ob_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '校友 ID', AUTO_INCREMENT=8;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `player`
@@ -532,7 +548,7 @@ ALTER TABLE `teamhistory`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `video`
 --
 ALTER TABLE `video`
-  MODIFY `Video_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '影片唯一識別碼';
+  MODIFY `Video_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '影片唯一識別碼', AUTO_INCREMENT=2;
 
 --
 -- 已傾印資料表的限制式
