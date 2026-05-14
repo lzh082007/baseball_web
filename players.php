@@ -34,26 +34,26 @@ if (!empty($search)) {
 <!-- Section 1: Player List -->
 <section class="players-section">
     <div class="container">
-        <div class="players-filter-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
-            <div class="players-filter-bar" style="margin-bottom: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
+            <div class="players-filter-bar" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <?php foreach ($positions as $pos): ?>
-                    <a href="?pos=<?= urlencode($pos) ?><?= !empty($search) ? '&search='.urlencode($search) : '' ?>" class="players-filter-badge <?= ($currentPos == $pos) ? 'active' : '' ?>">
+                    <a href="?pos=<?= urlencode($pos) ?><?= !empty($search) ? '&search='.urlencode($search) : '' ?>" class="players-filter-badge <?= ($currentPos == $pos) ? 'active' : '' ?>" style="margin: 0; height: 48px; display: flex; align-items: center; box-sizing: border-box;">
                         <?= $pos ?>
                     </a>
                 <?php endforeach; ?>
             </div>
             
-            <form method="GET" class="search-bar-container" style="margin-bottom: 0; width: 350px;">
+            <form method="GET" class="search-bar-container" style="margin-bottom: 0;">
                 <input type="hidden" name="pos" value="<?= htmlspecialchars($currentPos) ?>">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋球員姓名、背號..." value="<?= htmlspecialchars($search) ?>">
-                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋</button>
+                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋球員</button>
             </form>
         </div>
 
         <div class="players-grid">
             <?php if (empty($filteredPlayers)): ?>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #888; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
-                    <i class="fas fa-search" style="font-size: 3.5rem; margin-bottom: 20px; display: block; color: #ddd;"></i>
+                <div class="empty-state-message" style="grid-column: 1 / -1;">
+                    <i class="fas fa-search"></i>
                     找不到符合條件的球員。
                 </div>
             <?php else: ?>

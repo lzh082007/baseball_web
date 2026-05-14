@@ -35,8 +35,7 @@ function getYoutubeThumb($url) {
     if ($id) {
         return "https://img.youtube.com/vi/{$id}/mqdefault.jpg";
     }
-    // Fallback if not a standard video (e.g. playlist)
-    return 'assets/images/video-placeholder.jpg'; 
+    return null; // Return null instead of a placeholder
 }
 
 // Function to get the actual jump link
@@ -54,36 +53,6 @@ function getJumpLink($url) {
 <link rel="stylesheet" href="assets/css/member_dashboard.css">
 <link rel="stylesheet" href="assets/css/video_zone.css">
 <style>
-    .video-search-bar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 25px;
-        background: white;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    .video-search-input {
-        flex: 1;
-        padding: 10px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 1rem;
-    }
-    .video-search-btn {
-        padding: 10px 25px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 700;
-        transition: var(--transition);
-    }
-    .video-search-btn:hover {
-        background: #A00000;
-        transform: translateY(-2px);
-    }
     .video-card-link {
         text-decoration: none;
         color: inherit;
@@ -144,14 +113,14 @@ function getJumpLink($url) {
                 </div>
 
                 <!-- Search Bar -->
-                <form method="GET" class="video-search-bar">
-                    <input type="text" name="search" class="video-search-input" placeholder="搜尋影片標題、描述或分類..." value="<?= htmlspecialchars($search) ?>">
-                    <button type="submit" class="video-search-btn"><i class="fas fa-search"></i> 搜尋</button>
+                <form method="GET" class="search-bar-container">
+                    <input type="text" name="search" class="search-bar-input" placeholder="搜尋影片標題、描述或分類..." value="<?= htmlspecialchars($search) ?>">
+                    <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋影片</button>
                 </form>
 
                 <?php if (empty($videos)): ?>
-                    <div style="text-align: center; padding: 50px; color: #888;">
-                        <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                    <div class="empty-state-message">
+                        <i class="fas fa-video-slash"></i>
                         未找到符合搜尋條件的影片。
                     </div>
                 <?php else: ?>
@@ -159,8 +128,17 @@ function getJumpLink($url) {
                         <?php foreach ($videos as $video): ?>
                         <a href="<?= getJumpLink($video['url']) ?>" target="_blank" class="video-card-link">
                             <div class="video-card">
-                                <div class="video-wrapper" style="position: relative;">
-                                    <img src="<?= getYoutubeThumb($video['url']) ?>" class="video-thumbnail" alt="<?= htmlspecialchars($video['title']) ?>">
+                                <div class="video-wrapper" style="position: relative; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 180px;">
+                                    <?php $thumb = getYoutubeThumb($video['url']); ?>
+                                    <?php if ($thumb): ?>
+                                        <img src="<?= $thumb ?>" class="video-thumbnail" alt="<?= htmlspecialchars($video['title']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <?php else: ?>
+                                        <!-- Black background fallback -->
+                                        <div style="text-align: center; color: rgba(255,255,255,0.4);">
+                                            <i class="fas fa-external-link-alt" style="font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
+                                            <span style="font-size: 0.8rem; letter-spacing: 1px;">EXTERNAL LINK</span>
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="video-play-overlay">
                                         <i class="fas fa-play-circle"></i>
                                     </div>

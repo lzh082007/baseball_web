@@ -30,19 +30,20 @@ usort($newsList, function($a, $b) {
 
 <section id="news-section" class="home-news-section">
     <div class="container">
-        <div class="section-title" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
-            <h2>最新動態</h2>
-            <!-- Search Bar: < 1/4 width, aligned to top-right of section area -->
-            <form method="GET" class="search-bar-container" style="width: 280px; margin-bottom: 0; padding: 8px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                <input type="text" name="search" class="search-bar-input" placeholder="搜尋消息..." value="<?= htmlspecialchars($search) ?>" style="padding: 6px 12px; font-size: 0.85rem;">
-                <button type="submit" class="search-bar-btn" style="padding: 6px 15px; font-size: 0.85rem;"><i class="fas fa-search"></i></button>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;">
+            <div class="section-title" style="margin-bottom: 0;">
+                <h2 style="margin-bottom: 0;">最新動態</h2>
+            </div>
+            <form method="GET" class="search-bar-container" style="margin-bottom: 0; max-width: 350px;">
+                <input type="text" name="search" class="search-bar-input" placeholder="搜尋消息..." value="<?= htmlspecialchars($search) ?>">
+                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋動態</button>
             </form>
         </div>
         <div class="card-container" id="newsContainer">
             <?php if (empty($newsList)): ?>
-                <div style="width: 100%; text-align: center; padding: 40px; color: #888; background: white; border-radius: 12px; border: 1px solid #eee;">
-                    <i class="fas fa-search" style="font-size: 2.5rem; margin-bottom: 15px; display: block; color: #ddd;"></i>
-                    很抱歉，找不到與「<?= htmlspecialchars($search) ?>」相關的動態，換個關鍵字再試試看吧！
+                <div class="empty-state-message">
+                    <i class="fas fa-search"></i>
+                    很抱歉，找不到與「<?= htmlspecialchars($search) ?>」相關的動態。
                 </div>
             <?php else: ?>
                 <?php foreach ($newsList as $index => $news): ?>

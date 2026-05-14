@@ -23,18 +23,18 @@ usort($obMembers, function ($a, $b) {
 <!-- Section 1: Alumni List -->
 <section class="ob-section">
     <div class="container">
-        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
             <h2 style="margin-bottom: 0;">畢業英雄榜</h2>
-            <form method="GET" class="search-bar-container" style="margin-bottom: 0; width: 350px;">
+            <form method="GET" class="search-bar-container" style="margin-bottom: 0;">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋姓名、畢業年度或成就..." value="<?= htmlspecialchars($search) ?>">
-                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋</button>
+                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋成員</button>
             </form>
         </div>
 
         <div class="card-container">
             <?php if (empty($obMembers)): ?>
-                <div style="width: 100%; text-align: center; padding: 60px; color: #888; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
-                    <i class="fas fa-search" style="font-size: 3.5rem; margin-bottom: 20px; display: block; color: #ddd;"></i>
+                <div class="empty-state-message">
+                    <i class="fas fa-search"></i>
                     找不到符合條件的 OB 學長姐。
                 </div>
             <?php else: ?>

@@ -30,15 +30,14 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
 <section class="matches-section">
     <div class="container">
         
-        <!-- Controls: Toggle and Search -->
-        <div class="matches-controls" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;">
-            <div class="matches-tabs" style="margin-bottom: 0;">
-                <button class="btn-tab active" data-target="future-matches">未來賽程</button>
-                <button class="btn-tab" data-target="past-matches">過去賽程</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
+            <div class="matches-tabs" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px;">
+                <button class="btn-tab active" data-target="future-matches" style="height: 48px;">未來賽程</button>
+                <button class="btn-tab" data-target="past-matches" style="height: 48px;">過去賽程</button>
             </div>
-            <form method="GET" class="search-bar-container" style="margin-bottom: 0; width: 350px;">
+            <form method="GET" class="search-bar-container" style="margin-bottom: 0;">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋對手、日期或結果..." value="<?= htmlspecialchars($search) ?>">
-                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋</button>
+                <button type="submit" class="search-bar-btn"><i class="fas fa-search"></i> 搜尋賽事</button>
             </form>
         </div>
 
@@ -66,8 +65,8 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
         <!-- Past Matches Container -->
         <div id="past-matches" class="matches-tab-content" style="display: none;">
             <?php if (empty($pastGames)): ?>
-                <div style="text-align: center; padding: 50px; color: #888; background: white; border-radius: 15px; width: 100%; border: 1px solid #eee;">
-                    <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; display: block; color: #ddd;"></i>
+                <div class="empty-state-message">
+                    <i class="fas fa-search"></i>
                     目前的搜尋條件找不到相關賽事。
                 </div>
             <?php else: ?>
