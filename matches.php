@@ -32,8 +32,8 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
         
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
             <div class="matches-tabs" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px;">
-                <button class="btn-tab active" data-target="future-matches" style="height: 48px;">未來賽程</button>
-                <button class="btn-tab" data-target="past-matches" style="height: 48px;">過去賽程</button>
+                <button class="btn-tab active" data-target="past-matches" style="height: 48px;">過去賽程</button>
+                <button class="btn-tab" data-target="future-matches" style="height: 48px;">未來賽程</button>
             </div>
             <form method="GET" class="search-bar-container" style="margin-bottom: 0;">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋對手、日期或結果..." value="<?= htmlspecialchars($search) ?>">
@@ -42,7 +42,7 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
         </div>
 
         <!-- Future Matches Container -->
-        <div id="future-matches" class="matches-tab-content">
+        <div id="future-matches" class="matches-tab-content" style="display: none;">
             <?php if (empty($futureGames)): ?>
                 <p class="text-center">目前暫無賽程安排。</p>
             <?php else: ?>
@@ -63,7 +63,7 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
         </div>
 
         <!-- Past Matches Container -->
-        <div id="past-matches" class="matches-tab-content" style="display: none;">
+        <div id="past-matches" class="matches-tab-content">
             <?php if (empty($pastGames)): ?>
                 <div class="empty-state-message">
                     <i class="fas fa-search"></i>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 14 日 11:50
+-- 產生時間： 2026 年 05 月 14 日 15:34
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
@@ -246,7 +246,7 @@ CREATE TABLE `player` (
 -- 傾印資料表的資料 `player`
 --
 
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(8, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 79, 127, 'uploads/players/1778663574_IMG_3109.JPG');
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(1, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 79, 127, 'uploads/players/1778663574_IMG_3109.JPG');
 
 -- --------------------------------------------------------
 
@@ -332,7 +332,8 @@ CREATE TABLE `teamhistory` (
   `Team_Id` int(11) NOT NULL COMMENT '關聯 Team.team_Id',
   `title` varchar(100) NOT NULL COMMENT '標題',
   `content` text DEFAULT NULL COMMENT '詳細簡介內容',
-  `start_year` int(11) DEFAULT NULL COMMENT '起始年份'
+  `start_year` int(11) DEFAULT NULL COMMENT '起始年份',
+  `month` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -345,7 +346,9 @@ CREATE TABLE `teamhistory` (
 -- 傾印資料表的資料 `teamhistory`
 --
 
-INSERT INTO `teamhistory` (`History_Id`, `Team_Id`, `title`, `content`, `start_year`) VALUES(1, 1, '2012 球隊創立', '中科大棒球隊於 2012 年正式成立，由一群熱愛棒球的同學共同創隊，從零開始打造屬於中科大的棒球文化。', 2012);
+INSERT INTO `teamhistory` (`History_Id`, `Team_Id`, `title`, `content`, `start_year`, `month`) VALUES(1, 1, '2012 球隊創立', '中科大棒球隊於 2012 年正式成立，由一群熱愛棒球的同學共同創隊，從零開始打造屬於中科大的棒球文化。', 2012, NULL);
+INSERT INTO `teamhistory` (`History_Id`, `Team_Id`, `title`, `content`, `start_year`, `month`) VALUES(5, 1, '劉詠傑加入球隊', '內容描述（讚）', 2022, 9);
+INSERT INTO `teamhistory` (`History_Id`, `Team_Id`, `title`, `content`, `start_year`, `month`) VALUES(6, 1, '做了這個網頁', '內容描述', 2026, 2);
 
 -- --------------------------------------------------------
 
@@ -545,7 +548,7 @@ ALTER TABLE `team`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `teamhistory`
 --
 ALTER TABLE `teamhistory`
-  MODIFY `History_Id` int(11) NOT NULL AUTO_INCREMENT COMMENT '紀錄識別碼', AUTO_INCREMENT=5;
+  MODIFY `History_Id` int(11) NOT NULL AUTO_INCREMENT COMMENT '紀錄識別碼', AUTO_INCREMENT=7;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `video`

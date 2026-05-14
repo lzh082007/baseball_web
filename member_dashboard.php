@@ -100,6 +100,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 <section>
     <div class="container">
+        
+        <?php if ($tab === 'dashboard'): ?>
+            <!-- ── 控制台首頁 ── -->
+            <div class="section-title member-section-title">
+                <h2>數據概覽</h2>
+                <p>Personal Performance Overview</p>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
+                <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
+                    <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
+                    <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div>
+                    <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
+                    <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
+                </div>
+            </div>
+        <?php else: ?>
+            <!-- ── 個人設定 ── -->
+            <div class="section-title member-section-title">
+                <h2>個人設定</h2>
+                <p>Update your profile and player stats</p>
+            </div>
+        <?php endif; ?>
+
         <div class="member-dashboard-layout">
 
             <!-- Side Menu -->
@@ -116,25 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             <!-- Main Content -->
             <div>
-
                 <?php if ($tab === 'dashboard'): ?>
-                <!-- ── 控制台首頁 ── -->
-                <div class="section-title member-section-title">
-                    <h2>數據概覽</h2>
-                    <p>Personal Performance Overview</p>
-                </div>
-
-                <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
-                    <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
-                        <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
-                        <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div>
-                        <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
-                        <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
-                    </div>
-                </div>
-
                 <div class="member-stats-grid">
                     <div class="member-stats-card">
                         <h4>背號</h4>
@@ -169,10 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <?php else: ?>
                 <!-- ── 個人設定 ── -->
-                <div class="section-title member-section-title">
-                    <h2>個人設定</h2>
-                    <p>Update your profile and player stats</p>
-                </div>
 
                 <?php if ($msg): ?>
                 <div style="padding:12px 18px; border-radius:8px; margin-bottom:24px; font-weight:600;

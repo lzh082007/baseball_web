@@ -9,7 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'Team_Id'    => (int)$_POST['team_id'],
             'title'      => trim($_POST['title']),
             'content'    => trim($_POST['content']),
-            'start_year' => (int)$_POST['start_year']
+            'start_year' => (int)$_POST['start_year'],
+            'month'      => !empty($_POST['month']) ? (int)$_POST['month'] : null
         ]);
         $msg = '球隊歷史新增成功！';
     }
@@ -18,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'Team_Id'    => (int)$_POST['team_id'],
             'title'      => trim($_POST['title']),
             'content'    => trim($_POST['content']),
-            'start_year' => (int)$_POST['start_year']
+            'start_year' => (int)$_POST['start_year'],
+            'month'      => !empty($_POST['month']) ? (int)$_POST['month'] : null
         ]);
         $msg = '球隊歷史修改成功！';
     }
@@ -35,6 +37,9 @@ if (isset($_GET['edit_id'])) {
 
 $histories = $db->getAll('teamhistory');
 usort($histories, function($a, $b) {
+    if ($a['start_year'] == $b['start_year']) {
+        return (int)($a['month'] ?? 0) <=> (int)($b['month'] ?? 0);
+    }
     return $a['start_year'] <=> $b['start_year'];
 });
 
@@ -69,14 +74,23 @@ $teams = $db->getAll('team');
                         <input type="hidden" name="History_Id" value="<?= (int)$editRecord['History_Id'] ?>">
                     <?php endif; ?>
 
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">起始年份</label>
-                        <input type="number" name="start_year" min="1900" max="2100"
-                               class="form-control"
-                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;"
-                               value="<?= $editRecord ? (int)$editRecord['start_year'] : date('Y') ?>"
-                               required>
-                        <small style="color: #888; display: block; margin-top: 4px;">用於時間軸排序與顯示年份標籤</small>
+                    <div class="form-group" style="margin-bottom: 15px; display: flex; gap: 15px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">年份</label>
+                            <input type="number" name="start_year" min="1900" max="2100"
+                                   class="form-control"
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;"
+                                   value="<?= $editRecord ? (int)$editRecord['start_year'] : date('Y') ?>"
+                                   required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">月份 (選填)</label>
+                            <input type="number" name="month" min="1" max="12"
+                                   class="form-control"
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;"
+                                   placeholder="1-12"
+                                   value="<?= $editRecord ? ($editRecord['month'] ? (int)$editRecord['month'] : '') : '' ?>">
+                        </div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 15px;">
@@ -172,6 +186,9 @@ $teams = $db->getAll('team');
                                 <tr style="border-bottom: 1px solid #eee;">
                                     <td style="padding: 12px 15px; font-weight: 700; color: var(--secondary); font-size: 1rem;">
                                         <?= (int)$h['start_year'] ?>
+                                        <?php if (!empty($h['month'])): ?>
+                                            <span> / <?= (int)$h['month'] ?>月</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td style="padding: 12px 15px; font-weight: 500; color: var(--primary);">
                                         <?= htmlspecialchars($h['title']) ?>

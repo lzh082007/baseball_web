@@ -3,6 +3,9 @@ require_once 'includes/header.php';
 
 $histories = $db->getAll('teamhistory');
 usort($histories, function($a, $b) {
+    if ($a['start_year'] == $b['start_year']) {
+        return (int)($a['month'] ?? 0) <=> (int)($b['month'] ?? 0);
+    }
     return $a['start_year'] <=> $b['start_year'];
 });
 ?>
@@ -24,7 +27,12 @@ usort($histories, function($a, $b) {
                 <?php foreach ($histories as $index => $h): ?>
                     <div class="timeline-item">
                         <div class="timeline-card">
-                            <div class="timeline-year"><?= (int)$h['start_year'] ?></div>
+                            <div class="timeline-year">
+                                <?= (int)$h['start_year'] ?>
+                                <?php if (!empty($h['month'])): ?>
+                                    <span>/ <?= (int)$h['month'] ?>月</span>
+                                <?php endif; ?>
+                            </div>
                             <h3><?= htmlspecialchars($h['title']) ?></h3>
                             <p><?= nl2br(htmlspecialchars($h['content'])) ?></p>
                         </div>
