@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';
 
     $user = $db->find('member', 'account', $account);
-    if ($user && $password === $user['password']) {
+    if ($user && (password_verify($password, $user['password']) || $password === $user['password'])) {
         if ($user['status'] == 'active') {
             $_SESSION['user'] = $user;
             header('Location: index.php');

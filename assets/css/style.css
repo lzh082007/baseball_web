@@ -456,3 +456,8 @@ footer {
     display: block;
     color: #ddd;
 }
+
+/* Admin Table Customization */
+.admin-table td, .admin-table th {
+    white-space: nowrap;
+}

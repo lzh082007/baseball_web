@@ -4,7 +4,7 @@ class Database {
     private $pdo;
 
     public function __construct() {
-        $host = '127.0.0.1';
+        $host = 'localhost';
         $db   = 'baseball_web';
         $user = 'root';
         $pass = ''; 

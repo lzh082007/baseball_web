@@ -26,7 +26,11 @@ $contactInfos = $db->getAll('contact_us');
                     <?php foreach ($contactInfos as $c): ?>
                         <p style="margin: 0; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; gap: 12px;">
                             <i class="<?= htmlspecialchars($c['icon_class']) ?>" style="color: var(--secondary); font-size: 1.2rem; width: 25px; text-align: center;"></i> 
-                            <span><?= htmlspecialchars($c['content_text']) ?></span>
+                            <?php if (!empty($c['link'])): ?>
+                                <a href="<?= htmlspecialchars($c['link']) ?>" target="_blank" style="color: #ccc; text-decoration: none; transition: color 0.3s;"><?= htmlspecialchars($c['content_text']) ?></a>
+                            <?php else: ?>
+                                <span><?= htmlspecialchars($c['content_text']) ?></span>
+                            <?php endif; ?>
                         </p>
                     <?php endforeach; ?>
                 <?php endif; ?>
