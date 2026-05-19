@@ -10,15 +10,11 @@ if (!$player) {
     exit;
 }
 
-// Simple logic to fetch performances if any
-$performances = array_filter($db->getAll('playerrecord'), function($p) use ($player_id) {
-    return $p['Player_Id'] == $player_id;
-});
 ?>
 
 <div class="page-header">
     <h1>球員個人檔案</h1>
-    <p>詳細生涯數據與場上記錄</p>
+    <p>球員基本資料</p>
 </div>
 
 <section class="player-detail-section">
@@ -48,33 +44,7 @@ $performances = array_filter($db->getAll('playerrecord'), function($p) use ($pla
                     </div>
                 </div>
 
-                <h3 class="player-detail-h3 secondary">生涯紀錄 Records</h3>
-                <?php if (empty($performances)): ?>
-                    <p style="color: #888;">目前暫無詳細比賽數據記錄。</p>
-                <?php else: ?>
-                    <table class="player-records-table">
-                        <thead>
-                            <tr>
-                                <th>比賽日期</th>
-                                <th>安打</th>
-                                <th>打點</th>
-                                <th>得分</th>
-                                <th>打席</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($performances as $perf): ?>
-                                <tr>
-                                    <td style="font-weight: 700;">比賽 ID: <?= $perf['Record_Id'] ?></td>
-                                    <td><?= $perf['hit'] ?></td>
-                                    <td><?= $perf['rbi'] ?></td>
-                                    <td><?= $perf['runs'] ?></td>
-                                    <td><?= $perf['at_bats'] ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
+
                 
                 <div class="player-detail-footer">
                     <a href="players.php" class="player-detail-footer-link"><i class="fas fa-arrow-left"></i> 返回球員陣容列表</a>

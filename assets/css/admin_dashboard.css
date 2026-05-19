@@ -7,8 +7,8 @@
 
 .admin-summary-card {
     background: white;
-    padding: 40px;
-    border-radius: 20px;
+    padding: 20px 30px;
+    border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     text-align: center;
 }
@@ -26,8 +26,8 @@
 }
 
 .admin-summary-card i {
-    font-size: 3rem;
-    margin-bottom: 15px;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
 
 .admin-summary-card h3 {
@@ -43,7 +43,7 @@
 .admin-summary-card .admin-link {
     font-weight: 700;
     text-decoration: none;
-    margin-top: 15px;
+    margin-top: 10px;
     display: block;
 }
 

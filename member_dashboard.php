@@ -134,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <li><a href="member_dashboard.php" class="<?= $tab === 'dashboard' ? 'active' : '' ?>"><i class="fas fa-home"></i> 控制台</a></li>
                     <li><a href="matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
                     <li><a href="video_zone.php"><i class="fas fa-video"></i> 影片專區</a></li>
+                    <li><a href="member_dashboard.php?tab=my_stats" class="<?= $tab === 'my_stats' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
                     <li><a href="member_dashboard.php?tab=settings" class="<?= $tab === 'settings' ? 'active' : '' ?>"><i class="fas fa-user-circle"></i> 個人設定</a></li>
                 </ul>
                 <hr>
@@ -174,6 +175,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     尚未設定個人數據，前往 <a href="member_dashboard.php?tab=settings" style="color:var(--primary); font-weight:700;">個人設定</a> 填寫。
                 </div>
                 <?php endif; ?>
+
+                <?php elseif ($tab === 'my_stats'): ?>
+                <!-- ── 我的詳細數據 ── -->
+                <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 4px 15px rgba(0,0,0,0.06); border:1px solid #eee;">
+                    <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--primary); padding-bottom:10px;">
+                        <i class="fas fa-chart-bar" style="margin-right:8px; color:var(--primary);"></i>我的比賽詳細數據
+                    </h3>
+                    
+                    <?php 
+                    if ($playerData) {
+                        $myStats = array_filter($db->getAll('player_game_details'), function($s) use ($playerData) {
+                            return $s['player_id'] == $playerData['Player_id'];
+                        });
+                    } else {
+                        $myStats = [];
+                    }
+                    ?>
+                    
+                    <?php if (!$playerData): ?>
+                        <div style="padding:15px; background:#fff8e1; border-left:4px solid var(--secondary); border-radius:6px; color:#555;">請先在「個人設定」中建立球員數據。</div>
+                    <?php elseif (empty($myStats)): ?>
+                        <div style="padding:15px; background:#f9f9f9; border-radius:6px; text-align:center; color:#777;">目前無任何比賽數據記錄</div>
+                    <?php else: 
+                        $games = $db->getAll('game');
+                        function getGameName($gid, $games) {
+                            foreach($games as $g) {
+                                if($g['Game_id'] == $gid) return $g['game_date'] . ' vs ' . $g['opponent'];
+                            }
+                            return '未知比賽';
+                        }
+                    ?>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; text-align:left; min-width:800px;">
+                                <thead style="background:#f5f5f5; color:#333;">
+                                    <tr>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">比賽</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">打席數</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">打席結果</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">投球數</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">局數</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">三振</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">保送</th>
+                                        <th style="padding:12px; border-bottom:2px solid #ddd;">責失分</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($myStats as $s): ?>
+                                    <tr style="border-bottom:1px solid #eee;">
+                                        <td style="padding:12px; font-weight:600;"><?= htmlspecialchars(getGameName($s['game_id'], $games)) ?></td>
+                                        <td style="padding:12px;"><?= $s['pa_count'] ?></td>
+                                        <td style="padding:12px;"><?= htmlspecialchars($s['pa_results']) ?></td>
+                                        <td style="padding:12px;"><?= $s['pitches'] ?></td>
+                                        <td style="padding:12px;"><?= htmlspecialchars($s['innings']) ?></td>
+                                        <td style="padding:12px;"><?= $s['strikeouts'] ?></td>
+                                        <td style="padding:12px;"><?= $s['walks'] ?></td>
+                                        <td style="padding:12px;"><?= $s['earned_runs'] ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
                 <?php else: ?>
                 <!-- ── 個人設定 ── -->
