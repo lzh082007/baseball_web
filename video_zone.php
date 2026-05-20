@@ -3,7 +3,9 @@ require_once 'includes/header.php';
 requireAuth(); // Require user to be logged in
 
 $user = $_SESSION['user'];
-$role = $user['role'] == 'admin' ? '管理員' : ($user['role'] == 'player' ? '本校球員' : '一般粉絲');
+$roleMap = ['admin' => '管理員', 'player' => '本校球員', 'ob' => '畢業學長'];
+$role = isset($roleMap[$user['role']]) ? $roleMap[$user['role']] : '未知';
+$playerData = $db->find('player', 'mId', $user['mId']);
 
 // Fetch videos from database
 $videos = $db->getAll('video');
@@ -86,19 +88,37 @@ function getJumpLink($url) {
 </style>
 
 <div class="page-header">
-    <h1>影片專區</h1>
-    <p>會員專屬的賽事精華與內部訓練解析庫。您目前的權限等級：<span class="stats-primary" style="font-weight: 800;"><?= $role ?></span></p>
+    <h1>會員控制台</h1>
+    <p>歡迎回來，<?= htmlspecialchars($user['name']) ?>。目前的權限等級：<span class="stats-primary" style="font-weight:800;"><?= $role ?></span></p>
 </div>
 
 <section>
     <div class="container">
+        <!-- ── 共用的個人資料區塊 ── -->
+        <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
+            <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
+                <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
+                <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div>
+                <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
+                <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
+            </div>
+        </div>
+
+        <div class="section-title member-section-title" style="margin-bottom: 20px;">
+            <h2>影片專區</h2>
+            <p>Exclusive Member Content</p>
+        </div>
+
         <div class="member-dashboard-layout">
             <!-- Side Menu -->
             <div class="member-side-menu">
                 <ul>
                     <li><a href="member_dashboard.php"><i class="fas fa-home"></i> 控制台</a></li>
-                    <li><a href="matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
+                    <li><a href="member_matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
                     <li><a href="video_zone.php" class="active"><i class="fas fa-video"></i> 影片專區</a></li>
+                    <li><a href="member_dashboard.php?tab=my_stats"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
                     <li><a href="member_dashboard.php?tab=settings"><i class="fas fa-user-circle"></i> 個人設定</a></li>
                 </ul>
                 <hr>
@@ -107,10 +127,6 @@ function getJumpLink($url) {
 
             <!-- Main Content -->
             <div>
-                <div class="section-title member-section-title">
-                    <h2>影音特區</h2>
-                    <p>Exclusive Member Content</p>
-                </div>
 
                 <!-- Search Bar -->
                 <form method="GET" class="search-bar-container">

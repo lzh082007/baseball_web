@@ -101,28 +101,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 <section>
     <div class="container">
         
+        <!-- ── 共用的個人資料區塊 ── -->
+        <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
+            <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
+                <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
+                <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div>
+                <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
+                <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
+            </div>
+        </div>
+
         <?php if ($tab === 'dashboard'): ?>
             <!-- ── 控制台首頁 ── -->
-            <div class="section-title member-section-title">
+            <div class="section-title member-section-title" style="margin-bottom: 20px;">
                 <h2>數據概覽</h2>
                 <p>Personal Performance Overview</p>
             </div>
-
-            <div style="display:flex; align-items:center; gap:25px; margin-bottom:30px; background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #eee;">
-                <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid var(--primary); flex-shrink:0;">
-                    <?php $imgSrc = ($playerData && !empty($playerData['image_path'])) ? htmlspecialchars($playerData['image_path']) : 'assets/images/default-player.png'; ?>
-                    <img src="<?= $imgSrc ?>" style="width:100%; height:100%; object-fit:cover;">
-                </div>
-                <div>
-                    <h2 style="margin:0; color:#333; font-size:1.8rem;"><?= htmlspecialchars($user['name']) ?></h2>
-                    <p style="margin:5px 0 0; color:#888; font-weight:500;"><i class="fas fa-id-badge"></i> <?= $role ?> | #<?= $playerData ? htmlspecialchars($playerData['jersey_number'] ?? '—') : '—' ?></p>
-                </div>
-            </div>
         <?php else: ?>
             <!-- ── 個人設定 ── -->
-            <div class="section-title member-section-title">
-                <h2>個人設定</h2>
-                <p>Update your profile and player stats</p>
+            <div class="section-title member-section-title" style="margin-bottom: 20px;">
+                <h2><?= $tab === 'my_stats' ? '我的詳細數據' : '個人設定' ?></h2>
+                <p><?= $tab === 'my_stats' ? 'View your detailed game stats' : 'Update your profile and player stats' ?></p>
             </div>
         <?php endif; ?>
 
@@ -132,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             <div class="member-side-menu">
                 <ul>
                     <li><a href="member_dashboard.php" class="<?= $tab === 'dashboard' ? 'active' : '' ?>"><i class="fas fa-home"></i> 控制台</a></li>
-                    <li><a href="matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
+                    <li><a href="member_matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
                     <li><a href="video_zone.php"><i class="fas fa-video"></i> 影片專區</a></li>
                     <li><a href="member_dashboard.php?tab=my_stats" class="<?= $tab === 'my_stats' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
                     <li><a href="member_dashboard.php?tab=settings" class="<?= $tab === 'settings' ? 'active' : '' ?>"><i class="fas fa-user-circle"></i> 個人設定</a></li>

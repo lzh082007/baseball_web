@@ -73,20 +73,25 @@ $futureGames = array_filter($matches, function($m) use ($today) { return $m['gam
                 <div class="card-container">
                     <?php foreach ($pastGames as $g): ?>
                         <div class="card match-item" data-search="<?= htmlspecialchars(strtolower($g['opponent'] . ' ' . $g['game_date'] . ' ' . $g['result'])) ?>">
-                            <div class="card-content">
-                                <div class="match-card-header">
-                                    <span class="match-card-date"><?= $g['game_date'] ?></span>
-                                    <?php 
-                                        $isWin = strpos($g['result'], '勝') !== false;
-                                        $badgeClass = $isWin ? 'badge-win' : 'badge-loss';
-                                        $resultText = $isWin ? 'VICTORY' : 'DEFEAT';
-                                    ?>
-                                    <span class="badge <?= $badgeClass ?>"><?= $resultText ?></span>
+                            <div class="card-content" style="display: flex; flex-direction: column; height: 100%;">
+                                <div style="flex-grow: 1;">
+                                    <div class="match-card-header">
+                                        <span class="match-card-date"><?= $g['game_date'] ?></span>
+                                        <?php 
+                                            $isWin = strpos($g['result'], '勝') !== false;
+                                            $badgeClass = $isWin ? 'badge-win' : 'badge-loss';
+                                            $resultText = $isWin ? 'VICTORY' : 'DEFEAT';
+                                        ?>
+                                        <span class="badge <?= $badgeClass ?>"><?= $resultText ?></span>
+                                    </div>
+                                    <h3 class="card-title match-card-title-lg">vs <?= htmlspecialchars($g['opponent']) ?></h3>
+                                    <p class="match-card-result-lg">
+                                        <?= htmlspecialchars($g['result']) ?>
+                                    </p>
                                 </div>
-                                <h3 class="card-title match-card-title-lg">vs <?= htmlspecialchars($g['opponent']) ?></h3>
-                                <p class="match-card-result-lg">
-                                    <?= htmlspecialchars($g['result']) ?>
-                                </p>
+                                <a href="game_detail.php?id=<?= $g['Game_id'] ?>" style="display: block; text-align: center; padding: 10px; margin-top: 15px; border-radius: 6px; text-decoration: none; background: #f1f1f1; color: #333; font-weight: 600; border: 1px solid #ddd; transition: 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='white'; this.style.borderColor='var(--primary)';" onmouseout="this.style.background='#f1f1f1'; this.style.color='#333'; this.style.borderColor='#ddd';">
+                                    <i class="fas fa-chart-line"></i> 查看賽事數據
+                                </a>
                             </div>
                         </div>
                     <?php endforeach; ?>

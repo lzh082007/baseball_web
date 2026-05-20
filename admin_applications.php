@@ -42,11 +42,11 @@ foreach ($teams as $t) {
             <table class="admin-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                        <th style="padding: 12px 15px; text-align: left; color: #333;">目標球隊</th>
-                        <th style="padding: 12px 15px; text-align: left; color: #333;">姓名 / 性別</th>
-                        <th style="padding: 12px 15px; text-align: left; color: #333;">年齡 / 學制</th>
+                        <th style="padding: 12px 15px; text-align: left; color: #333; width: 15%;">目標球隊</th>
+                        <th style="padding: 12px 15px; text-align: left; color: #333; width: 15%;">姓名 / 性別</th>
+                        <th style="padding: 12px 15px; text-align: left; color: #333; width: 15%;">年齡 / 學制</th>
                         <th style="padding: 12px 15px; text-align: left; color: #333; width: 40%;">守備與動機</th>
-                        <th style="padding: 12px 15px; text-align: center; color: #333;">操作</th>
+                        <th style="padding: 12px 15px; text-align: center; color: #333; width: 15%; white-space: nowrap;">操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,7 +77,7 @@ foreach ($teams as $t) {
                                         <strong>動機：</strong><br><?= nl2br(htmlspecialchars($app['form_motive'])) ?>
                                     </div>
                                 </td>
-                                <td style="padding: 12px 15px; text-align: center;">
+                                <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                                     <form method="POST" style="display: inline;" onsubmit="return confirm('審核完畢後移除此申請單？')">
                                         <input type="hidden" name="form_id" value="<?= $app['form_id'] ?>">
                                         <button type="submit" name="delete" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s; font-weight: bold;"><i class="fas fa-check"></i> 完成並移除</button>
