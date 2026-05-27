@@ -8,11 +8,11 @@
     <meta name="description" content="國立臺中科技大學棒球隊官方管理系統，提供賽事資訊、球員數據、AI 戰報分析及招募資訊。">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2">
     <?php 
     $css_file = 'assets/css/' . basename($_SERVER['PHP_SELF'], '.php') . '.css';
     if (file_exists($css_file)): ?>
-        <link rel="stylesheet" href="<?= $css_file ?>">
+        <link rel="stylesheet" href="<?= $css_file ?>?v=2">
     <?php endif; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>

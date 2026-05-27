@@ -16,13 +16,16 @@ if ($user['role'] !== 'player') {
 
 $roleMap = ['admin' => '管理員', 'player' => '本校球員', 'ob' => '畢業學長'];
 $role = isset($roleMap[$user['role']]) ? $roleMap[$user['role']] : '未知';
-$playerData = $db->find('player', 'mId', $user['mId']);
+$pdo = $db->getPdo();
+$in_progress_stmt = $pdo->prepare("SELECT game_id FROM game_live_state WHERE is_ended = 0");
+$in_progress_stmt->execute();
+$in_progress_games = $in_progress_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
 // 取得我的比賽紀錄
 $myGames = [];
 if ($playerData) {
-    $myStats = array_filter($db->getAll('player_game_details'), function ($s) use ($playerData) {
-        return $s['player_id'] == $playerData['Player_id'];
+    $myStats = array_filter($db->getAll('player_game_details'), function ($s) use ($playerData, $in_progress_games) {
+        return $s['player_id'] == $playerData['Player_id'] && !in_array($s['game_id'], $in_progress_games);
     });
 
     $myGameIds = array_unique(array_column($myStats, 'game_id'));

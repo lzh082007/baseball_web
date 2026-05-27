@@ -171,6 +171,7 @@ nav {
     font-weight: 500;
 }
 
+.back-btn,
 .admin-back-btn {
     display: inline-flex;
     align-items: center;
@@ -188,11 +189,31 @@ nav {
     font-size: 0.85rem;
 }
 
+.back-btn:hover,
 .admin-back-btn:hover {
     border-color: var(--primary);
     color: var(--primary);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--text-white) !important;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #A00000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(200, 0, 0, 0.2);
 }
 
 .hero {

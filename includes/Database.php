@@ -3,6 +3,10 @@
 class Database {
     private $pdo;
 
+    public function getPdo() {
+        return $this->pdo;
+    }
+
     public function __construct() {
         $host = 'localhost';
         $db   = 'baseball_web';

@@ -32,6 +32,26 @@ function requireAdmin() {
     }
 }
 
+function formatInningsDisplay($ip) {
+    if (empty($ip) || $ip === '0') return '0';
+    $currentWhole = 0;
+    $currentOuts = 0;
+    $current = trim((string)$ip);
+    if (strpos($current, ' ') !== false) return $current; // Already formatted
+    if (strpos($current, '/') !== false) return $current; // Already formatted
+    if (strpos($current, '.') !== false) {
+        list($w, $o) = explode('.', $current);
+        $currentWhole = (int)$w;
+        $currentOuts = (int)$o;
+        if ($currentWhole == 0 && $currentOuts > 0) {
+            return $currentOuts . '/3';
+        } elseif ($currentWhole > 0 && $currentOuts > 0) {
+            return $currentWhole . ' ' . $currentOuts . '/3';
+        }
+        return (string)$currentWhole;
+    }
+    return $current;
+}
 // Read JSON data into DB (Only triggers if team is empty)
 if (empty($db->getAll('team'))) {
     // 1. Ensure Teams exist from JSON
