@@ -8,6 +8,11 @@ $role = isset($roleMap[$user['role']]) ? $roleMap[$user['role']] : '未知';
 // 判斷目前顯示哪個分頁
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
 
+if ($tab === 'my_stats' && isAdmin()) {
+    header('Location: admin_all_players_stats.php');
+    exit;
+}
+
 // 取得關聯的 player 資料（若有）
 $playerData = $db->find('player', 'mId', $user['mId']);
 
@@ -141,7 +146,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <li><a href="member_dashboard.php" class="<?= $tab === 'dashboard' ? 'active' : '' ?>"><i class="fas fa-home"></i> 控制台</a></li>
                     <li><a href="member_matches.php"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
                     <li><a href="video_zone.php"><i class="fas fa-video"></i> 影片專區</a></li>
-                    <li><a href="member_dashboard.php?tab=my_stats" class="<?= $tab === 'my_stats' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
+                    <?php if (isAdmin()): ?>
+                        <li><a href="admin_all_players_stats.php"><i class="fas fa-chart-bar"></i> 所有球員數據</a></li>
+                    <?php else: ?>
+                        <li><a href="member_dashboard.php?tab=my_stats" class="<?= $tab === 'my_stats' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
+                    <?php endif; ?>
                     <li><a href="member_dashboard.php?tab=settings" class="<?= $tab === 'settings' ? 'active' : '' ?>"><i class="fas fa-user-circle"></i> 個人設定</a></li>
                 </ul>
                 <hr>
@@ -206,6 +215,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <div style="padding:15px; background:#f9f9f9; border-radius:6px; text-align:center; color:#777;">目前無任何比賽數據記錄</div>
                     <?php else: 
                         $games = $db->getAll('game');
+                        if (!function_exists('translatePosition')) {
+                            function translatePosition($pos) {
+                                $map = [
+                                    'P' => '投手',
+                                    'C' => '捕手',
+                                    '1B' => '一壘手',
+                                    '2B' => '二壘手',
+                                    '3B' => '三壘手',
+                                    'SS' => '游擊手',
+                                    'LF' => '左外野手',
+                                    'CF' => '中外野手',
+                                    'RF' => '右外野手',
+                                    'DH' => '指定打擊'
+                                ];
+                                $pos = strtoupper(trim($pos));
+                                return isset($map[$pos]) ? $map[$pos] : $pos;
+                            }
+                        }
                         if (!function_exists('getGameName')) {
                             function getGameName($gid, $games) {
                                 foreach($games as $g) {
@@ -569,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                         <thead>
                                             <tr>
                                                 <th>統計</th>
-                                                <th>守備位置</th>
+                                                <th>守備位置類別</th>
                                                 <th>出賽</th>
                                                 <th>打席</th>
                                                 <th>打數</th>
@@ -639,10 +666,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 <i class="fas fa-list" style="color:#000;"></i> 打者單場比賽數據明細
                             </h4>
                             <div style="overflow-x:auto;">
-                                <table class="stats-table-clean" style="min-width:940px;">
+                                <table class="stats-table-clean" style="min-width:1040px;">
                                     <thead>
                                         <tr>
                                             <th>比賽</th>
+                                            <th>守備位置</th>
                                             <th>打席數</th>
                                             <th>打點</th>
                                             <th>得分</th>
@@ -656,7 +684,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                         <?php foreach($myStats as $s): ?>
                                         <?php if (($s['pa_count'] ?? 0) > 0 || !empty($s['pa_results'])): ?>
                                         <tr>
-                                            <td style="font-weight:bold; text-align:left; padding-left:10px;"><?= htmlspecialchars(getGameName($s['game_id'], $games)) ?></td>
+                                            <td style="font-weight:bold; text-align:left; padding-left:10px;"><?= htmlspecialchars(getGameName($s["game_id"], $games)) ?></td>
+                                            <td>
+                                                <?php
+                                                $lineup_stmt = $pdo->prepare("SELECT DISTINCT position FROM game_lineups WHERE game_id = ? AND player_id = ?");
+                                                $lineup_stmt->execute([$s['game_id'], $playerData['Player_id']]);
+                                                $positions = $lineup_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+                                                $translated_positions = array_map('translatePosition', $positions);
+                                                echo htmlspecialchars(!empty($translated_positions) ? implode(', ', $translated_positions) : '無紀錄');
+                                                ?>
+                                            </td>
                                             <td><?= $s['pa_count'] ?></td>
                                             <td><?= $s['rbi'] ?></td>
                                             <td><?= $s['runs'] ?></td>

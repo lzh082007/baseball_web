@@ -1108,6 +1108,37 @@ if ($lineup_configured) {
 
 // 守備位置定義
 $positions_list = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
+$positions_map = [
+    'P'  => 'P (投手)',
+    'C'  => 'C (捕手)',
+    '1B' => '1B (一壘手)',
+    '2B' => '2B (二壘手)',
+    '3B' => '3B (三壘手)',
+    'SS' => 'SS (游擊手)',
+    'LF' => 'LF (左外野手)',
+    'CF' => 'CF (中外野手)',
+    'RF' => 'RF (右外野手)',
+    'DH' => 'DH (指定打擊)'
+];
+
+if (!function_exists('translatePosition')) {
+    function translatePosition($pos) {
+        $map = [
+            'P' => '投手',
+            'C' => '捕手',
+            '1B' => '一壘手',
+            '2B' => '二壘手',
+            '3B' => '三壘手',
+            'SS' => '游擊手',
+            'LF' => '左外野手',
+            'CF' => '中外野手',
+            'RF' => '右外野手',
+            'DH' => '指定打擊'
+        ];
+        $pos = strtoupper(trim($pos));
+        return isset($map[$pos]) ? $map[$pos] : $pos;
+    }
+}
 $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['is_ended'] == 1) ? 1 : 0;
 ?>
 
@@ -1189,7 +1220,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                         $curr_pos = $default_pos[$i-1] ?? 'DH';
                                         ?>
                                         <?php foreach ($positions_list as $pos): ?>
-                                            <option value="<?= $pos ?>" <?= ($pos === $curr_pos) ? 'selected' : '' ?>><?= $pos ?></option>
+                                            <option value="<?= $pos ?>" <?= ($pos === $curr_pos) ? 'selected' : '' ?>><?= htmlspecialchars($positions_map[$pos] ?? $pos) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -1544,7 +1575,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                     </span>
                                     <div>
                                         <div style="font-weight:700; color: #1e293b;"><?= htmlspecialchars($b['Player_Name']) ?></div>
-                                        <span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:800;"><?= $b['position'] ?></span>
+                                        <span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:800;"><?= translatePosition($b['position']) ?></span>
                                         <span style="color:#64748b; font-size:0.8rem;">#<?= htmlspecialchars($b['jersey_number'] ?? '—') ?></span>
                                     </div>
                                 </div>
@@ -1585,7 +1616,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                             <h3 style="margin:0; font-size:1.25rem; font-weight:900; color: #1e3a8a;"><?= htmlspecialchars($current_batter['Player_Name']) ?> <span style="font-size:0.9rem; opacity:0.8;">#<?= htmlspecialchars($current_batter['jersey_number'] ?? '—') ?></span></h3>
                         </div>
                         <div style="text-align:right;">
-                            <span style="background:#3b82f6; color:white; padding:4px 10px; border-radius:6px; font-weight:800; font-size:0.85rem;"><?= $current_batter['position'] ?></span>
+                            <span style="background:#3b82f6; color:white; padding:4px 10px; border-radius:6px; font-weight:800; font-size:0.85rem;"><?= translatePosition($current_batter['position']) ?></span>
                         </div>
                     </div>
 
@@ -2029,7 +2060,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                 <label style="display:block; margin-bottom:5px;">守備位置</label>
                 <select name="position" id="pb-position" required style="width:100%; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
                     <?php foreach($positions_list as $pos): ?>
-                        <option value="<?= $pos ?>"><?= $pos ?></option>
+                        <option value="<?= $pos ?>"><?= htmlspecialchars($positions_map[$pos] ?? $pos) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -2076,7 +2107,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                 <label style="display:block; margin-bottom:5px;">守備位置</label>
                 <select name="position" id="cp-position" required style="width:100%; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
                     <?php foreach($positions_list as $pos): ?>
-                        <option value="<?= $pos ?>"><?= $pos ?></option>
+                        <option value="<?= $pos ?>"><?= htmlspecialchars($positions_map[$pos] ?? $pos) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

@@ -7,6 +7,7 @@ if (!isLoggedIn()) {
 }
 
 $user = $_SESSION['user'];
+$playerData = $db->find('player', 'mId', $user['mId']);
 
 // 只允許 player 存取，其他跳轉 matches.php
 if ($user['role'] !== 'player') {
@@ -80,7 +81,11 @@ if ($playerData) {
                     <li><a href="member_dashboard.php"><i class="fas fa-home"></i> 控制台</a></li>
                     <li><a href="member_matches.php" class="active"><i class="fas fa-baseball-ball"></i> 比賽記錄</a></li>
                     <li><a href="video_zone.php"><i class="fas fa-video"></i> 影片專區</a></li>
-                    <li><a href="member_dashboard.php?tab=my_stats"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
+                    <?php if (isAdmin()): ?>
+                        <li><a href="admin_all_players_stats.php"><i class="fas fa-chart-bar"></i> 所有球員數據</a></li>
+                    <?php else: ?>
+                        <li><a href="member_dashboard.php?tab=my_stats"><i class="fas fa-chart-bar"></i> 我的詳細數據</a></li>
+                    <?php endif; ?>
                     <li><a href="member_dashboard.php?tab=settings"><i class="fas fa-user-circle"></i> 個人設定</a></li>
                 </ul>
                 <hr>

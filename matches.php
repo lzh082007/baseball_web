@@ -17,8 +17,12 @@ usort($matches, function($a, $b) {
 });
 
 $today = date('Y-m-d');
-$pastGames = array_filter($matches, function($m) use ($today) { return $m['game_date'] < $today; });
-$futureGames = array_filter($matches, function($m) use ($today) { return $m['game_date'] >= $today; });
+$pastGames = array_filter($matches, function($m) use ($today) { 
+    return $m['game_date'] < $today || !empty($m['result']); 
+});
+$futureGames = array_filter($matches, function($m) use ($today) { 
+    return $m['game_date'] >= $today && empty($m['result']); 
+});
 ?>
 
 <div class="page-header">

@@ -114,11 +114,22 @@ foreach ($stats as $s) {
 .stats-table-clean tbody tr:hover {
     background: #f1f5f9 !important;
 }
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
 </style>
 
 <div class="page-header">
     <h1>賽事詳細資訊</h1>
-    <p>日期：<?= htmlspecialchars($game['game_date']) ?> | 對手：<?= htmlspecialchars($game['opponent']) ?> | 結果：<?= htmlspecialchars($game['result']) ?></p>
+    <p>日期：<?= htmlspecialchars($game['game_date']) ?> | 對手：<?= htmlspecialchars($game['opponent']) ?> | 結果：<?php
+        if ($live_state && (int)($live_state['is_ended'] ?? 0) === 0) {
+            echo '<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; display: inline-block; animation: pulse 1.5s infinite; vertical-align: middle;"><i class="fas fa-broadcast-tower" style="margin-right: 4px;"></i>LIVE 即時直播中</span>';
+        } else {
+            echo htmlspecialchars($game['result'] ?: '未開始');
+        }
+    ?></p>
 </div>
 
 <section>
