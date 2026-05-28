@@ -975,6 +975,464 @@ foreach ($players as $p) {
                 });
                 </script>
 
+                <!-- ── 數據欄位定義說明 (Data Glossary) ── -->
+                <div class="stats-glossary-card" style="background:#fff; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.08); border:1px solid #e2e8f0; margin-top:35px; overflow:hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                    <style>
+                    @keyframes glossaryFadeIn {
+                        from { opacity: 0; transform: translateY(8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    .glossary-section {
+                        animation: glossaryFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                    }
+                    .glossary-toggle-btn {
+                        border: 1px solid #e2e8f0;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        transition: all 0.2s ease;
+                        background: #f8fafc;
+                        color: #475569;
+                        outline: none;
+                    }
+                    .glossary-toggle-btn:hover {
+                        background: #f1f5f9;
+                        color: #1e293b;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                    }
+                    .glossary-table th {
+                        background: #f8fafc;
+                        color: #1e293b;
+                        font-weight: 700;
+                        border-bottom: 2px solid #e2e8f0;
+                        padding: 10px 14px;
+                        font-size: 0.825rem;
+                    }
+                    .glossary-table td {
+                        border-bottom: 1px solid #e2e8f0;
+                        padding: 10px 14px;
+                        color: #475569;
+                        line-height: 1.5;
+                        font-size: 0.8rem;
+                    }
+                    .glossary-table tr:hover td {
+                        background: #fdfdfd;
+                    }
+                    .glossary-table tr:last-child td {
+                        border-bottom: none;
+                    }
+                    #glossary-collapse-content {
+                        height: 480px;
+                        overflow: auto;
+                        border-top: 1px solid #e2e8f0;
+                        box-sizing: border-box;
+                    }
+                    /* 優化卡片與字型排版，使其上下左右滑動時整齊易讀 */
+                    .glossary-section div[style*="display:grid"] {
+                        gap: 12px !important;
+                    }
+                    .glossary-section div[style*="background:#f8fafc"],
+                    .glossary-section div[style*="background: #f8fafc"] {
+                        padding: 12px !important;
+                    }
+                    .glossary-section span[style*="background:var(--primary)"],
+                    .glossary-section span[style*="background: var(--primary)"] {
+                        font-size: 0.675rem !important;
+                        padding: 2px 6px !important;
+                    }
+                    .glossary-section strong {
+                        font-size: 0.825rem !important;
+                    }
+                    .glossary-section p {
+                        font-size: 0.775rem !important;
+                        line-height: 1.45 !important;
+                        margin-top: 5px !important;
+                    }
+                    </style>
+
+                    <!-- 可點擊的 Header -->
+                    <div onclick="toggleGlossary()" style="padding:22px 30px; background:linear-gradient(to right, #fafafa, #f5f5f5); border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; transition: background 0.2s;">
+                        <h3 style="margin:0; color:#1e293b; display:flex; align-items:center; gap:12px; font-size:1.25rem; font-weight:700;">
+                            <i class="fas fa-book-reader" style="color:var(--primary); font-size:1.35rem;"></i> 數據欄位定義說明 (Data Glossary)
+                        </h3>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <span id="glossary-status-badge" style="font-size:0.8rem; background:#e2e8f0; color:#475569; padding:4px 12px; border-radius:20px; font-weight:700; transition: all 0.25s ease;">點擊展開</span>
+                            <span id="glossary-arrow" style="transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); color:#64748b; font-size: 1rem;"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 摺疊內容區 -->
+                    <div id="glossary-collapse-content" style="display:none; padding:20px 25px;">
+                        <!-- Tabs 切換按鈕 -->
+                        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px; border-bottom:2px solid #f1f5f9; padding-bottom:14px;">
+                            <button id="btn-glossary-source" class="glossary-toggle-btn" onclick="switchGlossary('source')" style="background:var(--primary); color:white; border-color:var(--primary); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">數據來源與計算機制</button>
+                            <button id="btn-glossary-batter" class="glossary-toggle-btn" onclick="switchGlossary('batter')">打擊指標說明</button>
+                            <button id="btn-glossary-pitcher" class="glossary-toggle-btn" onclick="switchGlossary('pitcher')">投球指標說明</button>
+                            <button id="btn-glossary-characteristic" class="glossary-toggle-btn" onclick="switchGlossary('characteristic')">投手特性比例說明</button>
+                        </div>
+
+                        <!-- 0. 數據來源與計算說明 -->
+                        <div id="glossary-section-source" class="glossary-section" style="display:block;">
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-bottom:20px; box-sizing:border-box;">
+                                <h4 style="margin:0 0 10px 0; color:#1e293b; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-database" style="color:var(--primary);"></i> 系統數據資料流向說明
+                                </h4>
+                                <p style="margin:0; font-size:0.875rem; color:#64748b; line-height:1.6;">
+                                    本系統的所有球員生涯累計與平均數據，皆基於單場比賽中記錄的選手表現數據。資料主要來自於資料庫的 <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-family:monospace; color:#0f172a;">player_game_details</code>（單場球員統計明細表）與投球事件記錄。系統讀取每場比賽的原始紀錄後，動態進行累加，並代入標準棒球統計公式計算得出。
+                                </p>
+                            </div>
+                            
+                            <div style="overflow-x:auto;">
+                                <table class="glossary-table" style="width:100%; border-collapse:collapse; min-width:650px; background:#fff; border-radius:8px; overflow:hidden; border:1px solid #e2e8f0;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:20%; text-align:left;">網頁顯示數據</th>
+                                            <th style="width:30%; text-align:left;">資料庫來源欄位</th>
+                                            <th style="width:50%; text-align:left;">數據統計與計算機制</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>出賽 (G) / 先發 (GS)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">player_game_details</code></td>
+                                            <td><strong>出賽：</strong>統計球員在該表中有記錄的場次總數。<br><strong>先發：</strong>統計出場身分為先發（非後援）的場次總數。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>打席 (PA) / 打數 (AB)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">pa_results</code> 統計分析</td>
+                                            <td><strong>打席：</strong>該球員於單場比賽中站上打擊區並完成打擊的總次數。<br><strong>打數：</strong>打席扣除非支配打席的結果。公式為 <code style="font-family:monospace; font-size:0.85rem;">PA - BB - HBP - SF - SAC</code>。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>安打 (H) 及安打細分</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">pa_results</code> 統計分析</td>
+                                            <td>由單場打擊結果判定並累加。包含：一壘安打 (<code style="font-family:monospace; font-size:0.85rem;">1B</code>)、二壘安打 (<code style="font-family:monospace; font-size:0.85rem;">2B</code>)、三壘安打 (<code style="font-family:monospace; font-size:0.85rem;">3B</code>)、全壘打 (<code style="font-family:monospace; font-size:0.85rem;">HR</code>)。總安打 <code style="font-family:monospace; font-size:0.85rem;">H = 1B + 2B + 3B + HR</code>。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>打點 (RBI) / 得分 (R)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">player_game_details.rbi</code><br><code style="font-family:monospace; font-size:0.85rem;">player_game_details.runs</code></td>
+                                            <td>直接將球員在每場比賽中所登記的打點數與得分數進行生涯加總。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>投球局數 (IP)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">player_game_details.outs_pitched</code></td>
+                                            <td>記錄投手製造的出局數，計算為：<code style="font-family:monospace; font-size:0.85rem;">總出局數 / 3</code>。<br>餘數為 1 時顯示為 <code style="font-family:monospace; font-size:0.85rem;">.1</code> (1/3局)；餘數為 2 時顯示為 <code style="font-family:monospace; font-size:0.85rem;">.2</code> (2/3局)。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>自責分 (ER) / 投球數 (NP)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">player_game_details.earned_runs</code><br><code style="font-family:monospace; font-size:0.85rem;">player_game_details.pitches</code></td>
+                                            <td>直接將投手在每場比賽中所產生的自責分與投球總數進行加總。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>投手特性 (如 Strike% 等)</strong></td>
+                                            <td>投球明細統計</td>
+                                            <td>依據單場記錄的好球數、壞球數、被揮棒數及揮空次數，於多場比賽加總後按比例除以總投球數或總揮棒數計算。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>標準化指數 (OPS+ / ERA+)</strong></td>
+                                            <td><code style="font-family:monospace; font-size:0.85rem;">player_game_details</code> 全體統計</td>
+                                            <td>其公式中的<strong>「聯盟平均」是指「本系統內登錄的所有球員（於所有已結束比賽）加總後計算出的全隊總平均值」</strong>，以此作為基準來衡量個別打者/投手相對於全體平均水準的優劣程度。</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 1. 打擊指標說明 -->
+                        <div id="glossary-section-batter" class="glossary-section" style="display:none;">
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">G</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">出賽</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">代表球員參與的比賽場次數量 (Games Played)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">PA</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">打席</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打席數 (Plate Appearances)，打者站上打擊區完成一次完整打擊的總次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">AB</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">打數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打數 (At Bats)，打席扣除四壞、觸身球、犧牲短打、犧牲飛球後的有效打擊次數。公式：<code style="font-family:monospace; font-size:0.75rem;">PA - BB - HBP - SF - SAC</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">H</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">安打</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">安打總數 (Hits)，包含一壘安打、二壘安打、三壘安打與全壘打。公式：<code style="font-family:monospace; font-size:0.75rem;">1B + 2B + 3B + HR</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">1B / 2B / 3B / HR</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">安打細分</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">分別代表一壘安打、二壘安打、三壘安打與全壘打的累計數量，由單場打席結果 (<code style="font-family:monospace; font-size:0.75rem;">pa_results</code>) 解析統計。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">RBI</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">打點</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者擊球或保送使得壘上跑者（或打者本身）回本壘得分之點數 (Runs Batted In)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">R</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">得分</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者上壘後成功回到本壘得分的次數 (Runs Scored)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SO</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">被三振</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者被三振出局的總次數 (Strikeouts)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BB / HBP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">保送 / 觸身</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">四壞球保送 (Walks) 與被觸身球保送 (Hit By Pitch) 的次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SAC / SF</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">短打 / 犧飛</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">犧牲短打 (Sacrifice Bunts) 與高飛犧牲打 (Sacrifice Flies) 次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SB</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">盜壘</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">盜壘成功次數 (Stolen Bases)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">AVG</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">打擊率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打擊率 (Batting Average)，平均每打數擊出安打的機率。公式：<code style="font-family:monospace; font-size:0.75rem;">H / AB</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">OBP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">上壘率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">上壘率 (On-Base Percentage)，打者透過安打、保送或觸身球上壘的機率。公式：<code style="font-family:monospace; font-size:0.75rem;">(H + BB + HBP) / (AB + BB + HBP + SF)</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SLG</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">長打率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">長打率 (Slugging Percentage)，打者每個打數平均能推進的壘包數。公式：<code style="font-family:monospace; font-size:0.75rem;">TB / AB</code> (其中壘打數 TB = <code style="font-family:monospace; font-size:0.75rem;">1B + 2*2B + 3*3B + 4*HR</code>)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">OPS</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">整體攻擊指數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">整體攻擊指數 (On-base Plus Slugging)，上壘率與長打率的加總。公式：<code style="font-family:monospace; font-size:0.75rem;">OBP + SLG</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BABIP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">場內安打率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者將球擊入球場內（不含全壘打、三振）形成安打的機率。公式：<code style="font-family:monospace; font-size:0.75rem;">(H - HR) / (AB - SO - HR + SF)</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">K% / BB%</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">三振率 / 保送率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">三振數與保送數佔總打席 (PA) 的比例。公式：<code style="font-family:monospace; font-size:0.75rem;">SO / PA</code>、<code style="font-family:monospace; font-size:0.75rem;">BB / PA</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BB/K</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">保送三振比</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">每三振一次所獲得的保送次數，可用於評估打者的選球耐心與紀律。公式：<code style="font-family:monospace; font-size:0.75rem;">BB / SO</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">滾飛比</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">滾飛比</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">滾地出局次數與飛球出局次數的比值。公式：<code style="font-family:monospace; font-size:0.75rem;">GO / FO</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">OPS+</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">標準化攻擊指數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">以聯盟平均 OPS 為 100 作為基準進行調整後的數據，衡量打者相較聯盟平均的攻擊能力。公式：<code style="font-family:monospace; font-size:0.75rem;">100 * (OBP / 聯盟平均OBP + SLG / 聯盟平均SLG - 1)</code>。<strong>（備註：此處的「聯盟平均」是指本網頁系統資料庫中所有球員累計計算出的上壘率 OBP 與長打率 SLG 平均值）</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. 投球指標說明 -->
+                        <div id="glossary-section-pitcher" class="glossary-section" style="display:none;">
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">G / GS / GF</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">出賽 / 先發 / 後援</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手出賽總場數、先發登場次數與後援登板次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">CG / SHO</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">完投 / 完封</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">完投 (Complete Games) 投滿整場；完封 (Shutouts) 投滿整場且無 any 失分。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">W / L</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">勝場 / 敗場</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">代表勝投 (Wins) 與敗投 (Losses) 的場次紀錄。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SV / BS / HLD</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">救援 / 救援敗 / 中繼</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">救援成功 (Saves)、救援失敗 (Blown Saves) 以及中繼成功 (Holds) 的次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">IP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">投球局數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投球局數 (Innings Pitched)，每局有 3 個出局數。出局數以小數或分數代表（如 .1 表示投出 1 個出局數，顯示為 1/3 局；.2 顯示為 2/3 局）。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BF</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">面對打席</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手面對的打擊席數 (Batters Faced)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">NP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">投球數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手投出的總球數 (Number of Pitches)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">H / HR</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">被安打 / 被全壘打</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手被擊出的安打與全壘打數量。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SO / BB / HBP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">三振 / 保送 / 被觸身</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投出的三振、保送與投出觸身球保送的次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">R / ER</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">失分 / 自責分</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">失分 (Runs Allowed) 與自責分 (Earned Runs，非守備失誤造成的失分)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">WP / BK</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">暴投 / 投手犯規</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手暴投 (Wild Pitches) 與投手犯規 (Balks) 的次數。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">ERA</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">防禦率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">自責分率 (Earned Run Average)，投手平均每 9 局投球的自責分。公式：<code style="font-family:monospace; font-size:0.75rem;">(ER * 9) / IP</code> (IP 採十進位計算)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">WHIP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">每局被上壘率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手平均每局讓打者因安打或保送上壘的人數。公式：<code style="font-family:monospace; font-size:0.75rem;">(BB + H) / IP</code> (IP 採十進位)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">K9</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">每九局三振數</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手平均每 9 局可投出的三振數。公式：<code style="font-family:monospace; font-size:0.75rem;">(SO * 9) / IP</code> (IP 採十進位)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">K% / BB%</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">三振率 / 保送率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">三振數與保送數佔面對打席 (BF) 的比例。公式：<code style="font-family:monospace; font-size:0.75rem;">SO / BF</code>、<code style="font-family:monospace; font-size:0.75rem;">BB / BF</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BB/K</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">保送三振比</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">每三振一次投出保送的次數。公式：<code style="font-family:monospace; font-size:0.75rem;">BB / SO</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">GO / FO / 滾飛比</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">滾地 / 飛球 / 比值</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投球造成的滾地球出局數、飛球出局數以及兩者的比值。公式：<code style="font-family:monospace; font-size:0.75rem;">GO / FO</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">BABIP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">被安打率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者將球擊入球場內（排除全壘打及三振）形成安打的機率。公式：<code style="font-family:monospace; font-size:0.75rem;">(被安打 H - 被全壘打 HR) / (面對打席 BF - 三振 SO - 被全壘打 HR - 保送 BB - 被觸身 HBP)</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">FIP</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">獨立防禦率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">排除守備與運氣因素，評估投手核心壓制力的指標。公式：<code style="font-family:monospace; font-size:0.75rem;">(13*HR + 3*(BB + HBP) - 2*SO) / IP + 3.20</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">ERA+</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">標準化防禦率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">以聯盟平均防禦率為 100 作為基準進行調整後的數據，越高代表壓制防守效能越好。公式：<code style="font-family:monospace; font-size:0.75rem;">(聯盟平均防禦率 / 防禦率) * 100</code>。<strong>（備註：此處的「聯盟平均」是指本網頁系統資料庫中全體投手累計計算出的防禦率 ERA 平均值）</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. 投手特性比例說明 -->
+                        <div id="glossary-section-characteristic" class="glossary-section" style="display:none;">
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">好球率 (Strike%)</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">好球率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投出好球的總次數佔總投球數的百分比。公式：<code style="font-family:monospace; font-size:0.75rem;">好球數 / 總投球數</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">壞球率 (Ball%)</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">壞球率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投出壞球的總次數佔總投球數的百分比。公式：<code style="font-family:monospace; font-size:0.75rem;">壞球數 / 總投球數</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">揮棒率 (Swing%)</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">揮棒率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者對投手投出的球進行揮棒的次數佔總投球數的百分比。公式：<code style="font-family:monospace; font-size:0.75rem;">揮棒次數 / 總投球數</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">首球揮棒率</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">首球揮棒率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">面對打席時，打者在投出的第一球就揮棒次數的比例。公式：<code style="font-family:monospace; font-size:0.75rem;">首球揮棒次數 / 面對打席數</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">揮空率 (Whiff%)</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">揮空率</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者揮棒落空次數佔總揮棒次數的百分比，用以衡量投手的壓制力。公式：<code style="font-family:monospace; font-size:0.75rem;">揮空次數 / 揮棒總次數</code>。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">擊球比 (GB% / LD% / FB%)</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">擊球類型比例</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">投手被擊球中，滾地球 (GB), 平飛球 (LD) 與高飛球 (FB) 佔被擊入球場內總數的比例。公式：<code style="font-family:monospace; font-size:0.75rem;">各類型球數 / 擊球總數</code>。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- 關閉摺疊內容區 (glossary-collapse-content) -->
+                </div> <!-- 關閉外層卡片 (stats-glossary-card) -->
+
+                <script>
+                function toggleGlossary() {
+                    const content = document.getElementById('glossary-collapse-content');
+                    const arrow = document.getElementById('glossary-arrow');
+                    const badge = document.getElementById('glossary-status-badge');
+                    
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        arrow.style.transform = 'rotate(180deg)';
+                        badge.textContent = '點擊收合';
+                        badge.style.background = 'rgba(var(--primary-rgb, 10, 10, 10), 0.1)';
+                        badge.style.color = 'var(--primary)';
+                    } else {
+                        content.style.display = 'none';
+                        arrow.style.transform = 'rotate(0deg)';
+                        badge.textContent = '點擊展開';
+                        badge.style.background = '#e2e8f0';
+                        badge.style.color = '#475569';
+                    }
+                }
+
+                function switchGlossary(type) {
+                    document.querySelectorAll('.glossary-section').forEach(el => el.style.display = 'none');
+                    document.querySelectorAll('.glossary-toggle-btn').forEach(btn => {
+                        btn.style.background = '#f8fafc';
+                        btn.style.color = '#475569';
+                        btn.style.borderColor = '#e2e8f0';
+                        btn.style.boxShadow = 'none';
+                    });
+                    
+                    const targetSec = document.getElementById('glossary-section-' + type);
+                    if (targetSec) {
+                        targetSec.style.display = 'block';
+                    }
+                    const activeBtn = document.getElementById('btn-glossary-' + type);
+                    if (activeBtn) {
+                        activeBtn.style.background = 'var(--primary)';
+                        activeBtn.style.color = 'white';
+                        activeBtn.style.borderColor = 'var(--primary)';
+                        activeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    }
+                }
+                </script>
+
             </div>
         </div>
     </div>

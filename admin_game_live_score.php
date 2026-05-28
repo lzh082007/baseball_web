@@ -57,6 +57,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS `game_live_state` (
   `runner_first` tinyint(4) NOT NULL DEFAULT 0,
   `runner_second` tinyint(4) NOT NULL DEFAULT 0,
   `runner_third` tinyint(4) NOT NULL DEFAULT 0,
+  `runner_first_id` int(11) DEFAULT NULL,
+  `runner_second_id` int(11) DEFAULT NULL,
+  `runner_third_id` int(11) DEFAULT NULL,
   `is_ended` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`game_id`),
   FOREIGN KEY (`game_id`) REFERENCES `game` (`Game_id`) ON DELETE CASCADE
@@ -77,13 +80,29 @@ $alter_cols = [
     'runner_first' => 'tinyint(4) NOT NULL DEFAULT 0',
     'runner_second' => 'tinyint(4) NOT NULL DEFAULT 0',
     'runner_third' => 'tinyint(4) NOT NULL DEFAULT 0',
+    'runner_first_id' => 'int(11) DEFAULT NULL',
+    'runner_second_id' => 'int(11) DEFAULT NULL',
+    'runner_third_id' => 'int(11) DEFAULT NULL',
     'is_ended' => 'tinyint(4) NOT NULL DEFAULT 0',
 ];
+// 先讀取現有欄位，避免每次都執行 ALTER TABLE 產生資料庫 Exception
+$existing_cols = [];
+try {
+    $q = $pdo->query("DESCRIBE `game_live_state`");
+    if ($q) {
+        $existing_cols = $q->fetchAll(PDO::FETCH_COLUMN);
+    }
+} catch (Exception $e) {
+    // 忽略
+}
+
 foreach ($alter_cols as $col => $def) {
-    try {
-        $pdo->exec("ALTER TABLE `game_live_state` ADD COLUMN `$col` $def");
-    } catch (Exception $e) {
-        // Column already exists, ignore
+    if (!in_array($col, $existing_cols)) {
+        try {
+            $pdo->exec("ALTER TABLE `game_live_state` ADD COLUMN `$col` $def");
+        } catch (Exception $e) {
+            // Column already exists, ignore
+        }
     }
 }
 
@@ -168,10 +187,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $starting_pitcher_id = (int)$_POST['starting_pitcher'];
         
         $unique_batters = array_unique(array_filter($batters));
-        if (count($unique_batters) < 9) {
-            $msg = "先發名單必須選擇 9 位不同的球員！";
+        
+        // 檢查是否有重覆選擇球員在 9 個棒次中
+        $has_duplicate_batter = (count($unique_batters) < 9);
+        
+        // 檢查守備位置是否重複
+        $unique_positions = array_unique(array_filter($positions));
+        $has_duplicate_position = (count($unique_positions) < 9);
+        
+        // 檢查是否有指定打擊 (DH)
+        $has_dh = false;
+        $pitcher_order = 0; // 投手在打線中的棒次，若有
+        for ($i = 1; $i <= 9; $i++) {
+            if (trim($positions[$i]) === 'DH') {
+                $has_dh = true;
+            }
+            if (trim($positions[$i]) === 'P') {
+                $pitcher_order = $i;
+            }
+        }
+        
+        if ($has_duplicate_batter) {
+            $msg = "錯誤：先發名單必須選擇 9 位不同的球員，不可重複登錄！";
             $msgType = "error";
+        } elseif ($has_duplicate_position) {
+            $msg = "錯誤：先發打者中不可有重複的守備位置！";
+            $msgType = "error";
+        } elseif ($has_dh) {
+            // 如果使用 DH，先發投手不可同時出現在 9 人打線中
+            if (in_array($starting_pitcher_id, $batters)) {
+                $msg = "錯誤：本場使用指定打擊 (DH)，先發投手不可同時為先發打者之一！";
+                $msgType = "error";
+            }
+            // 且打線中不可以有位置為 P 的打者
+            elseif ($pitcher_order > 0) {
+                $msg = "錯誤：有指定打擊 (DH) 時，先發打者中不可有人擔任「P (投手)」位置！";
+                $msgType = "error";
+            }
         } else {
+            // 如果不使用 DH，打線中必須有一人擔任 P (投手)
+            if ($pitcher_order === 0) {
+                $msg = "錯誤：未使用指定打擊 (DH) 時，先發名單的 9 位打者中必須有一位守備位置為「P (投手)」！";
+                $msgType = "error";
+            }
+            // 且該擔任 P 的打者必須是指定的先發投手
+            elseif ($batters[$pitcher_order] != $starting_pitcher_id) {
+                $msg = "錯誤：先發投手必須與先發打者中擔任「P (投手)」位置的球員相同！";
+                $msgType = "error";
+            }
+        }
+        
+        // 驗證通過，執行寫入
+        if ($msg === '') {
             $pdo->prepare("DELETE FROM game_lineups WHERE game_id = ?")->execute([$game_id]);
             $pdo->prepare("DELETE FROM game_pitchers WHERE game_id = ?")->execute([$game_id]);
             $pdo->prepare("DELETE FROM game_live_state WHERE game_id = ?")->execute([$game_id]);
@@ -230,60 +297,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $sf_diff = ($pa_result === 'SF') ? 1 : 0;
                 $sac_diff = ($pa_result === 'SAC' || $pa_result === 'SH') ? 1 : 0;
                 
-                $rbi_diff = isset($_POST['rbi']) ? (int)$_POST['rbi'] : 0;
-                $runs_diff = isset($_POST['runs']) ? (int)$_POST['runs'] : 0;
-                $sb_diff = isset($_POST['stolen_bases']) ? (int)$_POST['stolen_bases'] : 0;
+                // 取得表單提交的跑者 ID
+                $runner_first_id = isset($_POST['runner_first_id']) ? (int)$_POST['runner_first_id'] : 0;
+                $runner_second_id = isset($_POST['runner_second_id']) ? (int)$_POST['runner_second_id'] : 0;
+                $runner_third_id = isset($_POST['runner_third_id']) ? (int)$_POST['runner_third_id'] : 0;
 
-                $new_first = (int)$curr_state['runner_first'];
-                $new_second = (int)$curr_state['runner_second'];
-                $new_third = (int)$curr_state['runner_third'];
-                $runs_auto = 0;
+                // 取得表單提交的跑者結果動作
+                $r1_action = isset($_POST['runner_first_action']) ? trim($_POST['runner_first_action']) : 'stay';
+                $r2_action = isset($_POST['runner_second_action']) ? trim($_POST['runner_second_action']) : 'stay';
+                $r3_action = isset($_POST['runner_third_action']) ? trim($_POST['runner_third_action']) : 'stay';
 
-                if ($pa_result === '1B' || $pa_result === 'E' || $pa_result === 'FC') {
-                    $runs_auto = $new_third;
-                    $new_third = $new_second;
-                    $new_second = $new_first;
-                    $new_first = 1;
-                } elseif ($pa_result === 'BB' || $pa_result === 'HBP') {
-                    if ($new_first) {
-                        if ($new_second) {
-                            if ($new_third) {
-                                $runs_auto = 1;
-                            }
-                            $new_third = 1;
-                        }
-                        $new_second = 1;
+                // 打者個人額外數據
+                $batter_sb = isset($_POST['batter_sb']) ? 1 : 0;
+                $batter_extra_rbi = isset($_POST['batter_extra_rbi']) ? (int)$_POST['batter_extra_rbi'] : 0;
+
+                // 新的壘包跑者 ID
+                $next_first_id = 0;
+                $next_second_id = 0;
+                $next_third_id = 0;
+
+                $runs_scored = 0;
+                $rbi_added = $batter_extra_rbi;
+                $outs_added = 0;
+
+                $stolen_bases_updates = []; // player_id => SB diff
+                $runs_updates = []; // player_id => Runs diff
+
+                // 1. 處理一壘跑者結果
+                if ($runner_first_id > 0) {
+                    if ($r1_action === 'stay') {
+                        $next_first_id = $runner_first_id;
+                    } elseif ($r1_action === 'adv_2b') {
+                        $next_second_id = $runner_first_id;
+                    } elseif ($r1_action === 'adv_3b') {
+                        $next_third_id = $runner_first_id;
+                    } elseif ($r1_action === 'score') {
+                        $runs_scored++;
+                        $rbi_added++;
+                        $runs_updates[$runner_first_id] = 1;
+                    } elseif ($r1_action === 'score_no_rbi') {
+                        $runs_scored++;
+                        $runs_updates[$runner_first_id] = 1;
+                    } elseif ($r1_action === 'sb_2b') {
+                        $next_second_id = $runner_first_id;
+                        $stolen_bases_updates[$runner_first_id] = 1;
+                    } elseif ($r1_action === 'out') {
+                        $outs_added++;
                     }
-                    $new_first = 1;
+                }
+
+                // 2. 處理二壘跑者結果
+                if ($runner_second_id > 0) {
+                    if ($r2_action === 'stay') {
+                        $next_second_id = $runner_second_id;
+                    } elseif ($r2_action === 'adv_3b') {
+                        $next_third_id = $runner_second_id;
+                    } elseif ($r2_action === 'score') {
+                        $runs_scored++;
+                        $rbi_added++;
+                        $runs_updates[$runner_second_id] = 1;
+                    } elseif ($r2_action === 'score_no_rbi') {
+                        $runs_scored++;
+                        $runs_updates[$runner_second_id] = 1;
+                    } elseif ($r2_action === 'sb_3b') {
+                        $next_third_id = $runner_second_id;
+                        $stolen_bases_updates[$runner_second_id] = 1;
+                    } elseif ($r2_action === 'out') {
+                        $outs_added++;
+                    }
+                }
+
+                // 3. 處理三壘跑者結果
+                if ($runner_third_id > 0) {
+                    if ($r3_action === 'stay') {
+                        $next_third_id = $runner_third_id;
+                    } elseif ($r3_action === 'score') {
+                        $runs_scored++;
+                        $rbi_added++;
+                        $runs_updates[$runner_third_id] = 1;
+                    } elseif ($r3_action === 'score_no_rbi') {
+                        $runs_scored++;
+                        $runs_updates[$runner_third_id] = 1;
+                    } elseif ($r3_action === 'sb_h') {
+                        $runs_scored++;
+                        $runs_updates[$runner_third_id] = 1;
+                        $stolen_bases_updates[$runner_third_id] = 1;
+                    } elseif ($r3_action === 'out') {
+                        $outs_added++;
+                    }
+                }
+
+                // 4. 處理打者打擊結果的自身位置
+                if (in_array($pa_result, ['1B', 'BB', 'HBP', 'E', 'FC'])) {
+                    $next_first_id = $batter_id;
                 } elseif ($pa_result === '2B') {
-                    $runs_auto = $new_second + $new_third;
-                    $new_third = $new_first;
-                    $new_second = 1;
-                    $new_first = 0;
+                    $next_second_id = $batter_id;
                 } elseif ($pa_result === '3B') {
-                    $runs_auto = $new_first + $new_second + $new_third;
-                    $new_third = 1;
-                    $new_second = 0;
-                    $new_first = 0;
+                    $next_third_id = $batter_id;
                 } elseif ($pa_result === 'HR') {
-                    $runs_auto = $new_first + $new_second + $new_third + 1;
-                    $new_first = 0;
-                    $new_second = 0;
-                    $new_third = 0;
+                    $runs_scored++;
+                    $rbi_added++;
+                    $runs_updates[$batter_id] = 1;
+                } elseif (in_array($pa_result, ['K', 'GO', 'FO'])) {
+                    $outs_added++;
+                } elseif ($pa_result === 'DP') {
+                    $outs_added += 2;
                 }
 
-                // Sync with manual inputs for individual stats
-                if ($runs_diff <= 0 && $runs_auto > 0) {
-                    $runs_diff = ($pa_result === 'HR') ? 1 : 0;
-                }
-                if ($rbi_diff <= 0 && $runs_auto > 0) {
-                    $rbi_diff = $runs_auto;
+                // 5. 更新其他非打者球員的個人數據（得分、盜壘）
+                $all_affected_players = array_unique(array_merge(array_keys($stolen_bases_updates), array_keys($runs_updates)));
+                foreach ($all_affected_players as $p_id) {
+                    if ($p_id == $batter_id) continue;
+
+                    $p_sb = $stolen_bases_updates[$p_id] ?? 0;
+                    $p_run = $runs_updates[$p_id] ?? 0;
+                    
+                    $p_stmt = $pdo->prepare("SELECT * FROM player_game_details WHERE game_id = ? AND player_id = ?");
+                    $p_stmt->execute([$game_id, $p_id]);
+                    $p_details = $p_stmt->fetch();
+                    
+                    if ($p_details) {
+                        $new_p_sb = (int)($p_details['stolen_bases'] ?? 0) + $p_sb;
+                        $new_p_run = (int)($p_details['runs'] ?? 0) + $p_run;
+                        $pdo->prepare("UPDATE player_game_details SET stolen_bases = ?, runs = ? WHERE id = ?")
+                            ->execute([$new_p_sb, $new_p_run, $p_details['id']]);
+                    } else {
+                        $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, stolen_bases, runs) VALUES (?, ?, ?, ?)")
+                            ->execute([$game_id, $p_id, $p_sb, $p_run]);
+                    }
                 }
 
-                // 2. 更新我方打者個人數據
+                // 6. 更新我方打者個人打擊數據
                 $stmt = $pdo->prepare("SELECT * FROM player_game_details WHERE game_id = ? AND player_id = ?");
                 $stmt->execute([$game_id, $batter_id]);
                 $details = $stmt->fetch();
+                
+                $runs_diff = $runs_updates[$batter_id] ?? 0;
                 
                 if ($details) {
                     $new_pa_count = (int)$details['pa_count'] + 1;
@@ -293,38 +442,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $new_hbp = (int)($details['hit_by_pitch'] ?? 0) + $hbp_diff;
                     $new_sf = (int)($details['sac_fly'] ?? 0) + $sf_diff;
                     $new_sac = (int)($details['sac_bunt'] ?? 0) + $sac_diff;
-                    $new_rbi = (int)($details['rbi'] ?? 0) + $rbi_diff;
+                    $new_rbi = (int)($details['rbi'] ?? 0) + $rbi_added;
                     $new_runs = (int)($details['runs'] ?? 0) + $runs_diff;
-                    $new_sb = (int)($details['stolen_bases'] ?? 0) + $sb_diff;
+                    $new_sb = (int)($details['stolen_bases'] ?? 0) + $batter_sb;
 
                     $pdo->prepare("UPDATE player_game_details SET pa_count = ?, pa_results = ?, go_outs = ?, fo_outs = ?, hit_by_pitch = ?, sac_fly = ?, sac_bunt = ?, rbi = ?, runs = ?, stolen_bases = ? WHERE id = ?")
                         ->execute([$new_pa_count, $new_pa_results, $new_go, $new_fo, $new_hbp, $new_sf, $new_sac, $new_rbi, $new_runs, $new_sb, $details['id']]);
                 } else {
                     $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, pa_count, pa_results, go_outs, fo_outs, hit_by_pitch, sac_fly, sac_bunt, rbi, runs, stolen_bases) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                        ->execute([$game_id, $batter_id, $pa_result, $go_diff, $fo_diff, $hbp_diff, $sf_diff, $sac_diff, $rbi_diff, $runs_diff, $sb_diff]);
+                        ->execute([$game_id, $batter_id, $pa_result, $go_diff, $fo_diff, $hbp_diff, $sf_diff, $sac_diff, $rbi_added, $runs_diff, $batter_sb]);
                 }
 
-                // 3. 更新計分板狀態 (團隊分數與壘包)
-                $runs_team_scored = max($rbi_diff, $runs_auto);
-                $new_our_score = (int)$curr_state['our_score'] + $runs_team_scored;
+                // 7. 更新計分板狀態 (團隊分數與壘包狀態，包含 ID)
+                $new_our_score = (int)$curr_state['our_score'] + $runs_scored;
                 $new_our_hits_diff = in_array($pa_result, ['1B', '2B', '3B', 'HR']) ? 1 : 0;
                 $new_our_hits = (int)$curr_state['our_hits'] + $new_our_hits_diff;
                 
-                $out_increment = 0;
-                if (in_array($pa_result, ['K', 'GO', 'FO', 'FC'])) {
-                    $out_increment = 1;
-                } elseif ($pa_result === 'DP') {
-                    $out_increment = 2;
-                }
-                $new_outs = (int)$curr_state['outs'] + $out_increment;
+                $new_outs = (int)$curr_state['outs'] + $outs_added;
 
                 $new_inning = (int)$curr_state['inning'];
                 $new_is_top = (int)$curr_state['is_top'];
                 if ($new_outs >= 3) {
                     $new_outs = 0;
-                    $new_first = 0;
-                    $new_second = 0;
-                    $new_third = 0;
+                    $next_first_id = 0;
+                    $next_second_id = 0;
+                    $next_third_id = 0;
                     if ($new_is_top == 1) {
                         $new_is_top = 0;
                     } else {
@@ -338,15 +480,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 $pdo->prepare("UPDATE game_live_state SET 
                     current_batter_order = ?, our_score = ?, our_hits = ?, outs = ?, 
-                    balls = 0, strikes = 0, runner_first = ?, runner_second = ?, runner_third = ?,
+                    balls = 0, strikes = 0, 
+                    runner_first = ?, runner_second = ?, runner_third = ?,
+                    runner_first_id = ?, runner_second_id = ?, runner_third_id = ?,
                     inning = ?, is_top = ?
                     WHERE game_id = ?")
                     ->execute([
                         $next_order, $new_our_score, $new_our_hits, $new_outs,
-                        $new_first, $new_second, $new_third, $new_inning, $new_is_top, $game_id
+                        ($next_first_id > 0 ? 1 : 0), ($next_second_id > 0 ? 1 : 0), ($next_third_id > 0 ? 1 : 0),
+                        ($next_first_id > 0 ? $next_first_id : null),
+                        ($next_second_id > 0 ? $next_second_id : null),
+                        ($next_third_id > 0 ? $next_third_id : null),
+                        $new_inning, $new_is_top, $game_id
                     ]);
                 
-                $msg = "我方打擊結果「{$pa_result}」已登錄！自動輪到下一棒 (第 {$next_order} 棒)；計分板已更新。";
+                $msg = "我方打擊結果「{$pa_result}」及壘包跑者事件已成功登記！自動輪到下一棒 (第 {$next_order} 棒)。";
             }
         } else {
             // 我方防守 (對手打擊) -> 更新我方投手數據
@@ -530,6 +678,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $pdo->prepare("UPDATE game_live_state SET 
                         opponent_score = ?, opponent_hits = ?, outs = ?, 
                         balls = 0, strikes = 0, runner_first = ?, runner_second = ?, runner_third = ?,
+                        runner_first_id = NULL, runner_second_id = NULL, runner_third_id = NULL,
                         inning = ?, is_top = ?
                         WHERE game_id = ?")
                         ->execute([
@@ -562,16 +711,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $runner_first = isset($_POST['runner_first']) ? 1 : 0;
         $runner_second = isset($_POST['runner_second']) ? 1 : 0;
         $runner_third = isset($_POST['runner_third']) ? 1 : 0;
+
+        // 讀取原本的跑者 ID，如果壘包被清空則設為 NULL
+        $state_stmt = $pdo->prepare("SELECT * FROM game_live_state WHERE game_id = ?");
+        $state_stmt->execute([$game_id]);
+        $curr = $state_stmt->fetch();
+        
+        $runner_first_id = ($runner_first && $curr) ? $curr['runner_first_id'] : null;
+        $runner_second_id = ($runner_second && $curr) ? $curr['runner_second_id'] : null;
+        $runner_third_id = ($runner_third && $curr) ? $curr['runner_third_id'] : null;
         
         $pdo->prepare("UPDATE game_live_state SET 
             our_score = ?, opponent_score = ?, inning = ?, is_top = ?,
             outs = ?, balls = ?, strikes = ?, our_hits = ?, opponent_hits = ?,
-            our_errors = ?, opponent_errors = ?, runner_first = ?, runner_second = ?, runner_third = ?
+            our_errors = ?, opponent_errors = ?, runner_first = ?, runner_second = ?, runner_third = ?,
+            runner_first_id = ?, runner_second_id = ?, runner_third_id = ?
             WHERE game_id = ?")
             ->execute([
                 $our_score, $opponent_score, $inning, $is_top,
                 $outs, $balls, $strikes, $our_hits, $opponent_hits,
                 $our_errors, $opponent_errors, $runner_first, $runner_second, $runner_third,
+                $runner_first_id, $runner_second_id, $runner_third_id,
                 $game_id
             ]);
         $msg = "計分板數據已手動更新！";
@@ -618,19 +778,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $new_inning = (int)$curr_state['inning'];
             $new_is_top = (int)$curr_state['is_top'];
 
+            $runner_first_id = $curr_state['runner_first_id'];
+            $runner_second_id = $curr_state['runner_second_id'];
+            $runner_third_id = $curr_state['runner_third_id'];
+
             $event_label = "";
             
             // Calculate base changes and out updates based on event type
             if ($event_type === 'SB_1_2') {
                 $new_first = 0;
                 $new_second = 1;
+                $runner_second_id = $runner_first_id;
+                $runner_first_id = null;
                 $event_label = "盜二壘成功";
             } elseif ($event_type === 'SB_2_3') {
                 $new_second = 0;
                 $new_third = 1;
+                $runner_third_id = $runner_second_id;
+                $runner_second_id = null;
                 $event_label = "盜三壘成功";
             } elseif ($event_type === 'SB_3_H') {
                 $new_third = 0;
+                $runner_third_id = null;
                 if ($team === 'our') {
                     $new_our_score++;
                 } else {
@@ -639,34 +808,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $event_label = "盜本壘成功";
             } elseif ($event_type === 'CS_1_2') {
                 $new_first = 0;
+                $runner_first_id = null;
                 $new_outs++;
                 $event_label = "盜二壘失敗出局";
             } elseif ($event_type === 'CS_2_3') {
                 $new_second = 0;
+                $runner_second_id = null;
                 $new_outs++;
                 $event_label = "盜三壘失敗出局";
             } elseif ($event_type === 'PO_1') {
                 $new_first = 0;
+                $runner_first_id = null;
                 $new_outs++;
                 $event_label = "一壘牽制出局";
             } elseif ($event_type === 'PO_2') {
                 $new_second = 0;
+                $runner_second_id = null;
                 $new_outs++;
                 $event_label = "二壘牽制出局";
             } elseif ($event_type === 'PO_3') {
                 $new_third = 0;
+                $runner_third_id = null;
                 $new_outs++;
                 $event_label = "三壘牽制出局";
             } elseif ($event_type === 'OB_1') {
                 $new_first = 0;
                 $new_second = 1;
+                $runner_second_id = $runner_first_id;
+                $runner_first_id = null;
                 $event_label = "跑壘/牽制失誤進二壘";
             } elseif ($event_type === 'OB_2') {
                 $new_second = 0;
                 $new_third = 1;
+                $runner_third_id = $runner_second_id;
+                $runner_second_id = null;
                 $event_label = "跑壘/牽制失誤進三壘";
             } elseif ($event_type === 'OB_3') {
                 $new_third = 0;
+                $runner_third_id = null;
                 if ($team === 'our') {
                     $new_our_score++;
                 } else {
@@ -683,6 +862,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $new_first = 0;
                 $new_second = 0;
                 $new_third = 0;
+                $runner_first_id = null;
+                $runner_second_id = null;
+                $runner_third_id = null;
                 $new_balls = 0;
                 $new_strikes = 0;
                 if ($new_is_top == 1) {
@@ -699,15 +881,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 our_score = ?, opponent_score = ?, outs = ?, 
                 balls = ?, strikes = ?,
                 runner_first = ?, runner_second = ?, runner_third = ?,
+                runner_first_id = ?, runner_second_id = ?, runner_third_id = ?,
                 inning = ?, is_top = ?
                 WHERE game_id = ?")
                 ->execute([
                     $new_our_score, $new_opp_score, $new_outs,
                     $new_balls, $new_strikes,
-                    $new_first, $new_second, $new_third, $new_inning, $new_is_top, $game_id
+                    $new_first, $new_second, $new_third,
+                    $runner_first_id, $runner_second_id, $runner_third_id,
+                    $new_inning, $new_is_top, $game_id
                 ]);
 
-            // If it's OUR player stealing, increment their stolen bases count in database
+            // If it's OUR player stealing or scoring, increment their counts in database
             if ($team === 'our' && isset($_POST['player_id']) && !empty($_POST['player_id'])) {
                 $player_id = (int)$_POST['player_id'];
                 
@@ -717,22 +902,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $details = $stmt->fetch();
                 
                 $sb_add = (strpos($event_type, 'SB_') !== false) ? 1 : 0;
+                $run_add = ($event_type === 'SB_3_H' || $event_type === 'OB_3') ? 1 : 0;
                 
                 // Fetch name for message
                 $p_stmt = $pdo->prepare("SELECT Player_Name FROM player WHERE Player_id = ?");
                 $p_stmt->execute([$player_id]);
                 $player_name = $p_stmt->fetchColumn() ?: "球員";
 
-                if ($sb_add > 0) {
+                if ($sb_add > 0 || $run_add > 0) {
                     if ($details) {
-                        $new_sb = (int)$details['stolen_bases'] + 1;
-                        $pdo->prepare("UPDATE player_game_details SET stolen_bases = ? WHERE id = ?")
-                            ->execute([$new_sb, $details['id']]);
+                        $new_sb = (int)$details['stolen_bases'] + $sb_add;
+                        $new_runs = (int)($details['runs'] ?? 0) + $run_add;
+                        $pdo->prepare("UPDATE player_game_details SET stolen_bases = ?, runs = ? WHERE id = ?")
+                            ->execute([$new_sb, $new_runs, $details['id']]);
                     } else {
-                        $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, stolen_bases) VALUES (?, ?, 1)")
-                            ->execute([$game_id, $player_id]);
+                        $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, stolen_bases, runs) VALUES (?, ?, ?, ?)")
+                            ->execute([$game_id, $player_id, $sb_add, $run_add]);
                     }
-                    $msg = "成功記錄 {$player_name} 「{$event_label}」！球員個人盜壘數已累加。";
+                    $msg = "成功記錄 {$player_name} 「{$event_label}」！球員個人數據已累加。";
                 } else {
                     $msg = "成功記錄 {$player_name} 「{$event_label}」！計分板及壘包狀態已更新。";
                 }
@@ -1188,12 +1375,151 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
         <?php endif; ?>
 
         <?php if (!$lineup_configured): ?>
+            <?php
+            // 預設先發名單自動安排演算法 - 依球員基本資料的守備位置分配
+            $default_selected_batters = []; // index 1 to 9 -> player_id
+            $default_selected_positions = []; // index 1 to 9 -> position string (P, C, 1B, 2B, 3B, SS, LF, CF, RF, DH)
+            $used_player_ids = [];
+            $used_field_positions = [];
+
+            // 定義每個棒次優先匹配的守備位置類別
+            $order_requirements = [
+                1 => '投手',
+                2 => '捕手',
+                3 => '內野手',
+                4 => '內野手',
+                5 => '內野手',
+                6 => '內野手',
+                7 => '外野手',
+                8 => '外野手',
+                9 => '外野手'
+            ];
+
+            // 內外野位置的細分候選值
+            $infield_positions = ['1B', '2B', '3B', 'SS'];
+            $outfield_positions = ['LF', 'CF', 'RF'];
+
+            // 第一輪：嘗試精準匹配球員，同時給予最適合的守備位置
+            for ($i = 1; $i <= 9; $i++) {
+                $req = $order_requirements[$i];
+                foreach ($players as $p) {
+                    $p_id = $p['Player_id'];
+                    if (in_array($p_id, $used_player_ids)) {
+                        continue;
+                    }
+                    if ($p['position'] && strpos($p['position'], $req) !== false) {
+                        $default_selected_batters[$i] = $p_id;
+                        $used_player_ids[] = $p_id;
+                        
+                        // 分配具體守備位置
+                        $assigned_pos = 'DH';
+                        if ($req === '投手' && !in_array('P', $used_field_positions)) {
+                            $assigned_pos = 'P';
+                        } elseif ($req === '捕手' && !in_array('C', $used_field_positions)) {
+                            $assigned_pos = 'C';
+                        } elseif ($req === '內野手') {
+                            foreach ($infield_positions as $ip) {
+                                if (!in_array($ip, $used_field_positions)) {
+                                    $assigned_pos = $ip;
+                                    break;
+                                }
+                            }
+                        } elseif ($req === '外野手') {
+                            foreach ($outfield_positions as $op) {
+                                if (!in_array($op, $used_field_positions)) {
+                                    $assigned_pos = $op;
+                                    break;
+                                }
+                            }
+                        }
+                        $default_selected_positions[$i] = $assigned_pos;
+                        $used_field_positions[] = $assigned_pos;
+                        break;
+                    }
+                }
+            }
+
+            // 第二輪：若有未排滿的棒次，用尚未被選取的剩餘球員填補
+            for ($i = 1; $i <= 9; $i++) {
+                if (!isset($default_selected_batters[$i])) {
+                    foreach ($players as $p) {
+                        $p_id = $p['Player_id'];
+                        if (!in_array($p_id, $used_player_ids)) {
+                            $default_selected_batters[$i] = $p_id;
+                            $used_player_ids[] = $p_id;
+                            
+                            // 依據該球員的第一守位分配一個未被佔用的守位
+                            $player_pos_str = $p['position'] ?: '';
+                            $assigned_pos = 'DH';
+                            if (strpos($player_pos_str, '投手') !== false && !in_array('P', $used_field_positions)) {
+                                $assigned_pos = 'P';
+                            } elseif (strpos($player_pos_str, '捕手') !== false && !in_array('C', $used_field_positions)) {
+                                $assigned_pos = 'C';
+                            } elseif (strpos($player_pos_str, '內野手') !== false) {
+                                foreach ($infield_positions as $ip) {
+                                    if (!in_array($ip, $used_field_positions)) {
+                                        $assigned_pos = $ip;
+                                        break;
+                                    }
+                                }
+                            } elseif (strpos($player_pos_str, '外野手') !== false) {
+                                foreach ($outfield_positions as $op) {
+                                    if (!in_array($op, $used_field_positions)) {
+                                        $assigned_pos = $op;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // 如果還是找不到未被佔用的特定位置，就隨便找一個沒被佔用的位置
+                            if ($assigned_pos === 'DH' && in_array('DH', $used_field_positions)) {
+                                $all_possible = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
+                                foreach ($all_possible as $ap) {
+                                    if (!in_array($ap, $used_field_positions)) {
+                                        $assigned_pos = $ap;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            $default_selected_positions[$i] = $assigned_pos;
+                            $used_field_positions[] = $assigned_pos;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 第三輪：如果球員總數不足 9 人，直接用空值與未佔用位置填補
+            for ($i = 1; $i <= 9; $i++) {
+                if (!isset($default_selected_batters[$i])) {
+                    $default_selected_batters[$i] = '';
+                    $all_possible = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
+                    $assigned_pos = 'DH';
+                    foreach ($all_possible as $ap) {
+                        if (!in_array($ap, $used_field_positions)) {
+                            $assigned_pos = $ap;
+                            break;
+                        }
+                    }
+                    $default_selected_positions[$i] = $assigned_pos;
+                    $used_field_positions[] = $assigned_pos;
+                }
+            }
+            ?>
             <!-- ── 設置先發名單與投手 ── -->
             <div class="admin-form-card" style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
                 <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: inline-block;">
                     <i class="fas fa-users-cog" style="color:var(--primary); margin-right:8px;"></i> 設定本場比賽先發名單
                 </h3>
-                <form method="POST">
+                
+                <!-- 錯誤訊息提示區 -->
+                <div id="lineup-validation-msg" style="display:none; background:#fee2e2; border:1px solid #fecaca; color:#991b1b; padding:15px; border-radius:8px; margin-bottom:20px; font-weight:600; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>
+                    <span id="lineup-validation-text"></span>
+                </div>
+
+                <form method="POST" id="lineup-form">
                     <input type="hidden" name="action" value="setup_lineup">
                     
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
@@ -1205,7 +1531,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                     <select name="batters[<?= $i ?>]" required style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
                                         <option value="">-- 請選擇球員 --</option>
                                         <?php foreach ($players as $p): ?>
-                                            <option value="<?= $p['Player_id'] ?>" <?= ($i == $p['Player_id']%9 + 1) ? 'selected' : '' ?>>
+                                            <option value="<?= $p['Player_id'] ?>" <?= ($default_selected_batters[$i] == $p['Player_id']) ? 'selected' : '' ?>>
                                                 #<?= $p['jersey_number'] ? htmlspecialchars($p['jersey_number']) : '—' ?> - <?= htmlspecialchars($p['Player_Name']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -1215,9 +1541,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                     <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:#666;">守備位置</label>
                                     <select name="positions[<?= $i ?>]" required style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
                                         <?php 
-                                        // 預設給每個棒次一個合理的先發位置，方便快速測試
-                                        $default_pos = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
-                                        $curr_pos = $default_pos[$i-1] ?? 'DH';
+                                        $curr_pos = $default_selected_positions[$i] ?? 'DH';
                                         ?>
                                         <?php foreach ($positions_list as $pos): ?>
                                             <option value="<?= $pos ?>" <?= ($pos === $curr_pos) ? 'selected' : '' ?>><?= htmlspecialchars($positions_map[$pos] ?? $pos) ?></option>
@@ -1234,7 +1558,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                             <select name="starting_pitcher" required style="width:100%; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
                                 <option value="">-- 請選擇先發投手 --</option>
                                 <?php foreach ($players as $p): ?>
-                                    <option value="<?= $p['Player_id'] ?>">
+                                    <option value="<?= $p['Player_id'] ?>" <?= ($default_selected_batters[1] == $p['Player_id']) ? 'selected' : '' ?>>
                                         #<?= $p['jersey_number'] ? htmlspecialchars($p['jersey_number']) : '—' ?> - <?= htmlspecialchars($p['Player_Name']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -1247,6 +1571,211 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                     </button>
                 </form>
             </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.getElementById('lineup-form');
+                if (!form) return;
+
+                const playersData = <?= json_encode($players) ?>;
+                const playerPositions = {};
+                playersData.forEach(p => {
+                    playerPositions[p.Player_id] = p.position || '';
+                });
+
+                const batterSelects = Array.from(form.querySelectorAll('select[name^="batters["]'));
+                const positionSelects = Array.from(form.querySelectorAll('select[name^="positions["]'));
+                const pitcherSelect = form.querySelector('select[name="starting_pitcher"]');
+                const errorBox = document.getElementById('lineup-validation-msg');
+                const errorText = document.getElementById('lineup-validation-text');
+
+                // 依據球員守備位置自動分配場上守備位置的對應
+                function autoAssignPosition(batterSelect, positionSelect) {
+                    const playerId = batterSelect.value;
+                    if (!playerId) return;
+
+                    const profilePosStr = playerPositions[playerId];
+                    if (!profilePosStr) return;
+
+                    const profilePositions = profilePosStr.split(',');
+                    const currentFieldPos = positionSelect.value;
+
+                    // 檢查當前選定的場上守位是否已符合球員基本資料的守位
+                    let alreadyMatches = false;
+                    profilePositions.forEach(pPos => {
+                        if (pPos === '投手' && currentFieldPos === 'P') alreadyMatches = true;
+                        if (pPos === '捕手' && currentFieldPos === 'C') alreadyMatches = true;
+                        if (pPos === '內野手' && ['1B', '2B', '3B', 'SS'].includes(currentFieldPos)) alreadyMatches = true;
+                        if (pPos === '外野手' && ['LF', 'CF', 'RF'].includes(currentFieldPos)) alreadyMatches = true;
+                    });
+
+                    if (alreadyMatches) {
+                        return; // 已符合，不需要自動變更
+                    }
+
+                    // 依據球員的第一守位（最前面的那個）進行自動切換
+                    const primaryPos = profilePositions[0];
+                    if (primaryPos === '投手') {
+                        positionSelect.value = 'P';
+                    } else if (primaryPos === '捕手') {
+                        positionSelect.value = 'C';
+                    } else if (primaryPos === '內野手') {
+                        // 儘量挑選一個未被其他棒次佔用的內野位置
+                        const infields = ['1B', '2B', '3B', 'SS'];
+                        let selected = '1B';
+                        for (let ip of infields) {
+                            let isUsed = false;
+                            batterSelects.forEach((sel, idx) => {
+                                if (sel !== batterSelect && positionSelects[idx].value === ip) {
+                                    isUsed = true;
+                                }
+                            });
+                            if (!isUsed) {
+                                selected = ip;
+                                break;
+                            }
+                        }
+                        positionSelect.value = selected;
+                    } else if (primaryPos === '外野手') {
+                        // 儘量挑選一個未被其他棒次佔用的外野位置
+                        const outfields = ['LF', 'CF', 'RF'];
+                        let selected = 'LF';
+                        for (let op of outfields) {
+                            let isUsed = false;
+                            batterSelects.forEach((sel, idx) => {
+                                if (sel !== batterSelect && positionSelects[idx].value === op) {
+                                    isUsed = true;
+                                }
+                            });
+                            if (!isUsed) {
+                                selected = op;
+                                break;
+                            }
+                        }
+                        positionSelect.value = selected;
+                    } else {
+                        positionSelect.value = 'DH';
+                    }
+                }
+
+                // 檢查名單是否有任何問題
+                function checkLineupValidity() {
+                    let errors = [];
+                    
+                    // 1. 檢查是否有重複球員在 9 個棒次中
+                    const batterValues = batterSelects.map(s => s.value).filter(val => val !== '');
+                    const uniqueBatters = new Set(batterValues);
+                    if (uniqueBatters.size < batterValues.length) {
+                        errors.push("先發名單中不可有重複的球員登入！");
+                    }
+
+                    // 2. 檢查守備位置是否重複
+                    const positionValues = positionSelects.map(s => s.value).filter(val => val !== '');
+                    const uniquePositions = new Set(positionValues);
+                    if (uniquePositions.size < positionValues.length) {
+                        errors.push("先發名單的守備位置不可重複！");
+                    }
+
+                    // 3. DH 與投手的關係檢查
+                    const hasDH = positionValues.includes('DH');
+                    let pitcherOrderIndex = -1;
+                    positionSelects.forEach((s, idx) => {
+                        if (s.value === 'P') {
+                            pitcherOrderIndex = idx;
+                        }
+                    });
+
+                    const selectedPitcher = pitcherSelect.value;
+
+                    if (hasDH) {
+                        // 有 DH：先發投手不可在打線中
+                        if (selectedPitcher && batterValues.includes(selectedPitcher)) {
+                            errors.push("本場使用指定打擊 (DH)，先發投手不可同時出現在先發打席 (9人打線) 中！");
+                        }
+                        if (pitcherOrderIndex !== -1) {
+                            errors.push("有指定打擊 (DH) 時，先發打者中不可有人擔任「P (投手)」位置！");
+                        }
+                    } else {
+                        // 無 DH：打線中必須有一人擔任 P
+                        if (pitcherOrderIndex === -1) {
+                            errors.push("未使用指定打擊 (DH) 時，先發名單的 9 位打者中必須有一位守備位置為「P (投手)」！");
+                        } else if (selectedPitcher) {
+                            const batterAtP = batterSelects[pitcherOrderIndex].value;
+                            if (batterAtP && batterAtP !== selectedPitcher) {
+                                                    errors.push("先發投手必須與先發打者中擔任「P (投手)」位置的球員相同！");
+                            }
+                        }
+                    }
+
+                    return errors;
+                }
+
+                // 處理選擇變更時的即時視覺反饋
+                function handleSelectChange() {
+                    const batterValues = batterSelects.map(s => s.value);
+                    
+                    // 高亮重複球員選擇
+                    batterSelects.forEach((select, idx) => {
+                        const val = select.value;
+                        if (val && batterValues.filter(v => v === val).length > 1) {
+                            select.style.borderColor = '#ef4444';
+                            select.style.backgroundColor = '#fef2f2';
+                        } else {
+                            select.style.borderColor = '#cbd5e1';
+                            select.style.backgroundColor = '';
+                        }
+                    });
+
+                    // 守備位置重複高亮
+                    const posValues = positionSelects.map(s => s.value);
+                    positionSelects.forEach((select, idx) => {
+                        const val = select.value;
+                        if (val && posValues.filter(v => v === val).length > 1) {
+                            select.style.borderColor = '#ef4444';
+                            select.style.backgroundColor = '#fef2f2';
+                        } else {
+                            select.style.borderColor = '#cbd5e1';
+                            select.style.backgroundColor = '';
+                        }
+                    });
+
+                    // 更新即時錯誤訊息顯示
+                    const errors = checkLineupValidity();
+                    if (errors.length > 0) {
+                        errorBox.style.display = 'block';
+                        errorText.innerHTML = errors.join('<br><i class="fas fa-exclamation-triangle" style="margin-right:8px; margin-top:5px;"></i> ');
+                    } else {
+                        errorBox.style.display = 'none';
+                    }
+                }
+
+                // 綁定事件監聽器
+                batterSelects.forEach((s, idx) => {
+                    s.addEventListener('change', function() {
+                        autoAssignPosition(s, positionSelects[idx]);
+                        handleSelectChange();
+                    });
+                });
+
+                positionSelects.forEach(s => {
+                    s.addEventListener('change', handleSelectChange);
+                });
+
+                pitcherSelect.addEventListener('change', handleSelectChange);
+
+                // 表單提交驗證
+                form.addEventListener('submit', function(e) {
+                    const errors = checkLineupValidity();
+                    if (errors.length > 0) {
+                        e.preventDefault();
+                        alert("先發名單設定錯誤，請修正以下項目：\n\n- " + errors.join("\n- "));
+                    }
+                });
+
+                // 頁面加載時執行一次
+                handleSelectChange();
+            });
+            </script>
         <?php else: ?>
             <!-- ── 賽事即時登記主界面 (含 Stadium Scoreboard 與 3-Column Layout) ── -->
             <div style="position: relative; width: 100%;">
@@ -1628,8 +2157,50 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                         <input type="hidden" name="pitches_thrown" value="0">
 
                         <div>
+                            <!-- ── 壘包上所有跑者 ── -->
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:15px;">
+                                <h4 style="margin:0 0 10px 0; font-size:0.85rem; color:#334155; font-weight:700; display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-running" style="color:var(--primary);"></i> 壘包上所有跑者
+                                </h4>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:3px; font-weight:600;">一壘跑者</label>
+                                        <select name="runner_first_id" id="runner_first_select" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:0.8rem; font-family:inherit;">
+                                            <option value="">-- 無 --</option>
+                                            <?php foreach ($active_lineup as $b): ?>
+                                                <option value="<?= $b['player_id'] ?>" <?= ($live_state && $live_state['runner_first_id'] == $b['player_id']) ? 'selected' : '' ?>>
+                                                    #<?= htmlspecialchars($b['jersey_number'] ?? '') ?> <?= htmlspecialchars($b['Player_Name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:3px; font-weight:600;">二壘跑者</label>
+                                        <select name="runner_second_id" id="runner_second_select" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:0.8rem; font-family:inherit;">
+                                            <option value="">-- 無 --</option>
+                                            <?php foreach ($active_lineup as $b): ?>
+                                                <option value="<?= $b['player_id'] ?>" <?= ($live_state && $live_state['runner_second_id'] == $b['player_id']) ? 'selected' : '' ?>>
+                                                    #<?= htmlspecialchars($b['jersey_number'] ?? '') ?> <?= htmlspecialchars($b['Player_Name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:3px; font-weight:600;">三壘跑者</label>
+                                        <select name="runner_third_id" id="runner_third_select" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:0.8rem; font-family:inherit;">
+                                            <option value="">-- 無 --</option>
+                                            <?php foreach ($active_lineup as $b): ?>
+                                                <option value="<?= $b['player_id'] ?>" <?= ($live_state && $live_state['runner_third_id'] == $b['player_id']) ? 'selected' : '' ?>>
+                                                    #<?= htmlspecialchars($b['jersey_number'] ?? '') ?> <?= htmlspecialchars($b['Player_Name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <h4 style="margin-top:0; font-size:0.95rem; color:#475569; margin-bottom:12px;">選擇打席結果</h4>
-                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">
+                            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:15px;">
                                 <?php 
                                 $offense_pa_buttons = [
                                     '1B' => '一安', '2B' => '二安', '3B' => '三安', 'HR' => '全壘打',
@@ -1637,30 +2208,126 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                     'GO' => '滾地出局', 'FO' => '飛球出局', 'DP' => '雙殺打', 'FC' => '野選'
                                 ];
                                 foreach($offense_pa_buttons as $code => $label): ?>
-                                    <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 10px 3px; border-radius: 6px; cursor:pointer; font-weight:700; transition:0.2s;" class="pa-label offense-pa-label">
+                                    <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; font-weight:700; transition:0.2s;" class="pa-label offense-pa-label">
                                         <input type="radio" name="pa_result" value="<?= $code ?>" required style="display:none;" onchange="updateOffenseHighlights()">
-                                        <div style="font-size: 1rem;"><?= $code ?></div>
-                                        <div style="font-size: 0.75rem; color:#64748b; margin-top:2px; font-weight:normal;"><?= $label ?></div>
+                                        <div style="font-size: 0.9rem;"><?= $code ?></div>
+                                        <div style="font-size: 0.7rem; color:#64748b; margin-top:2px; font-weight:normal;"><?= $label ?></div>
                                     </label>
                                 <?php endforeach; ?>
                             </div>
                             
+                            <!-- ── 跑者結果與打者額外數據 ── -->
                             <div style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
-                                <h4 style="margin-top:0; font-size:0.95rem; color:#475569; margin-bottom:10px;">記錄得分 / 打點 / 盜壘</h4>
-                                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-                                    <div>
-                                        <label style="display:block; font-size:0.75rem; color:#64748b; font-weight:bold; margin-bottom:4px;">得分 (R)</label>
-                                        <input type="number" name="runs" id="o_runs_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-family:inherit; text-align:center; box-sizing:border-box;">
+                                <h4 style="margin-top:0; font-size:0.95rem; color:#475569; margin-bottom:10px;">壘包跑者動作設定</h4>
+                                
+                                <!-- 1B -->
+                                <div id="base-1-events-block" style="margin-bottom:12px; display:none; background:#f0f7ff; padding:10px; border-radius:8px; border:1px solid #dbeafe;">
+                                    <div style="font-size:0.8rem; font-weight:700; color:#1d4ed8; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                                        <span style="background:#3b82f6; color:white; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem;">1</span>
+                                        一壘跑者 (<span id="runner_first_name_label"></span>) 結果：
                                     </div>
-                                    <div>
-                                        <label style="display:block; font-size:0.75rem; color:#64748b; font-weight:bold; margin-bottom:4px;">打點 (RBI)</label>
-                                        <input type="number" name="rbi" id="o_rbi_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-family:inherit; text-align:center; box-sizing:border-box;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:0.75rem; color:#64748b; font-weight:bold; margin-bottom:4px;">盜壘 (SB)</label>
-                                        <input type="number" name="stolen_bases" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-family:inherit; text-align:center; box-sizing:border-box;">
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:6px;">
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" id="r1_action_stay" value="stay" checked style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">安全留在原壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="adv_2b" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">推進到二壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="adv_3b" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">推進到三壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="score" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">回本壘得分</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(打者打點+1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="score_no_rbi" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">得分(無打點)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="sb_2b" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#fbbf24;">盜二壘成功</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(SB +1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_first_action" value="out" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#ef4444;">跑壘出局</div>
+                                        </label>
                                     </div>
                                 </div>
+
+                                <!-- 2B -->
+                                <div id="base-2-events-block" style="margin-bottom:12px; display:none; background:#fff7ed; padding:10px; border-radius:8px; border:1px solid #ffedd5;">
+                                    <div style="font-size:0.8rem; font-weight:700; color:#c2410c; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                                        <span style="background:#ea580c; color:white; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem;">2</span>
+                                        二壘跑者 (<span id="runner_second_name_label"></span>) 結果：
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:6px;">
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" id="r2_action_stay" value="stay" checked style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">安全留在原壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" value="adv_3b" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">推進到三壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" value="score" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">回本壘得分</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(打者打點+1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" value="score_no_rbi" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">得分(無打點)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" value="sb_3b" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#fbbf24;">盜三壘成功</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(SB +1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_second_action" value="out" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#ef4444;">跑壘出局</div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 3B -->
+                                <div id="base-3-events-block" style="margin-bottom:12px; display:none; background:#f0fdf4; padding:10px; border-radius:8px; border:1px solid #dcfce7;">
+                                    <div style="font-size:0.8rem; font-weight:700; color:#15803d; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                                        <span style="background:#16a34a; color:white; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem;">3</span>
+                                        三壘跑者 (<span id="runner_third_name_label"></span>) 結果：
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:6px;">
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_third_action" id="r3_action_stay" value="stay" checked style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700;">安全留在原壘</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_third_action" value="score" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">回本壘得分</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(打者打點+1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_third_action" value="score_no_rbi" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#10b981;">得分(無打點)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_third_action" value="sb_h" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#fbbf24;">盜本壘成功</div>
+                                            <div style="font-size:0.65rem; color:#64748b;">(SB +1)</div>
+                                        </label>
+                                        <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; transition:0.2s;" class="runner-action-label">
+                                            <input type="radio" name="runner_third_action" value="out" style="display:none;" onchange="updateRunnerActionsHighlights()">
+                                            <div style="font-size:0.75rem; font-weight:700; color:#ef4444;">跑壘出局</div>
+                                        </label>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -2374,6 +3041,115 @@ function updateOffenseHighlights() {
     }
 }
 
+function syncDropdownsToBases() {
+    const base1 = document.getElementById('base-1');
+    const base2 = document.getElementById('base-2');
+    const base3 = document.getElementById('base-3');
+    
+    const sel1 = document.getElementById('runner_first_select');
+    const sel2 = document.getElementById('runner_second_select');
+    const sel3 = document.getElementById('runner_third_select');
+    
+    const chkRunner1 = document.getElementById('chk-runner-1');
+    const chkRunner2 = document.getElementById('chk-runner-2');
+    const chkRunner3 = document.getElementById('chk-runner-3');
+    
+    if (sel1 && base1) {
+        if (sel1.value) {
+            base1.style.background = '#fbbf24';
+            base1.style.boxShadow = '0 0 8px #fbbf24';
+            if (chkRunner1) chkRunner1.checked = true;
+        } else {
+            base1.style.background = '#1e293b';
+            base1.style.boxShadow = 'none';
+            if (chkRunner1) chkRunner1.checked = false;
+        }
+    }
+    if (sel2 && base2) {
+        if (sel2.value) {
+            base2.style.background = '#fbbf24';
+            base2.style.boxShadow = '0 0 8px #fbbf24';
+            if (chkRunner2) chkRunner2.checked = true;
+        } else {
+            base2.style.background = '#1e293b';
+            base2.style.boxShadow = 'none';
+            if (chkRunner2) chkRunner2.checked = false;
+        }
+    }
+    if (sel3 && base3) {
+        if (sel3.value) {
+            base3.style.background = '#fbbf24';
+            base3.style.boxShadow = '0 0 8px #fbbf24';
+            if (chkRunner3) chkRunner3.checked = true;
+        } else {
+            base3.style.background = '#1e293b';
+            base3.style.boxShadow = 'none';
+            if (chkRunner3) chkRunner3.checked = false;
+        }
+    }
+}
+
+function updateBaseEventsUI() {
+    const sel1 = document.getElementById('runner_first_select');
+    const sel2 = document.getElementById('runner_second_select');
+    const sel3 = document.getElementById('runner_third_select');
+    
+    const block1 = document.getElementById('base-1-events-block');
+    const block2 = document.getElementById('base-2-events-block');
+    const block3 = document.getElementById('base-3-events-block');
+    
+    const label1 = document.getElementById('runner_first_name_label');
+    const label2 = document.getElementById('runner_second_name_label');
+    const label3 = document.getElementById('runner_third_name_label');
+    
+    if (sel1 && block1 && label1) {
+        if (sel1.value) {
+            block1.style.display = 'block';
+            label1.textContent = sel1.options[sel1.selectedIndex].text.trim();
+        } else {
+            block1.style.display = 'none';
+            const defaultRadio = document.getElementById('r1_action_stay');
+            if (defaultRadio) defaultRadio.checked = true;
+        }
+    }
+    if (sel2 && block2 && label2) {
+        if (sel2.value) {
+            block2.style.display = 'block';
+            label2.textContent = sel2.options[sel2.selectedIndex].text.trim();
+        } else {
+            block2.style.display = 'none';
+            const defaultRadio = document.getElementById('r2_action_stay');
+            if (defaultRadio) defaultRadio.checked = true;
+        }
+    }
+    if (sel3 && block3 && label3) {
+        if (sel3.value) {
+            block3.style.display = 'block';
+            label3.textContent = sel3.options[sel3.selectedIndex].text.trim();
+        } else {
+            block3.style.display = 'none';
+            const defaultRadio = document.getElementById('r3_action_stay');
+            if (defaultRadio) defaultRadio.checked = true;
+        }
+    }
+    updateRunnerActionsHighlights();
+}
+
+function updateRunnerActionsHighlights() {
+    document.querySelectorAll('.runner-action-label').forEach(label => {
+        const radio = label.querySelector('input[type="radio"]');
+        if (radio && radio.checked) {
+            label.style.background = '#bfdbfe';
+            label.style.borderColor = '#3b82f6';
+            label.style.color = '#1e3a8a';
+        } else {
+            label.style.background = 'white';
+            label.style.borderColor = '#cbd5e1';
+            label.style.color = '#333';
+        }
+    });
+}
+
 function updateDefenseHighlights() {
     let selectedVal = '';
     document.querySelectorAll('.defense-pa-label').forEach(label => {
@@ -2454,13 +3230,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const chkRunner2 = document.getElementById('chk-runner-2');
     const chkRunner3 = document.getElementById('chk-runner-3');
     
-    function toggleBase(baseEl, checkboxEl) {
+    const sel1 = document.getElementById('runner_first_select');
+    const sel2 = document.getElementById('runner_second_select');
+    const sel3 = document.getElementById('runner_third_select');
+    
+    function toggleBase(baseEl, checkboxEl, dropdownEl) {
         if (!baseEl || !checkboxEl) return;
         const active = checkboxEl.checked;
         if (active) {
             checkboxEl.checked = false;
             baseEl.style.background = '#1e293b';
             baseEl.style.boxShadow = 'none';
+            if (dropdownEl) {
+                dropdownEl.value = "";
+                updateBaseEventsUI();
+            }
         } else {
             checkboxEl.checked = true;
             baseEl.style.background = '#fbbf24';
@@ -2469,16 +3253,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (base1 && chkRunner1) {
-        base1.addEventListener('click', () => toggleBase(base1, chkRunner1));
+        base1.addEventListener('click', () => toggleBase(base1, chkRunner1, sel1));
     }
     if (base2 && chkRunner2) {
-        base2.addEventListener('click', () => toggleBase(base2, chkRunner2));
+        base2.addEventListener('click', () => toggleBase(base2, chkRunner2, sel2));
     }
     if (base3 && chkRunner3) {
-        base3.addEventListener('click', () => toggleBase(base3, chkRunner3));
+        base3.addEventListener('click', () => toggleBase(base3, chkRunner3, sel3));
     }
     
-    // Initialize radio highlights
+    if (sel1) sel1.addEventListener('change', () => {
+        syncDropdownsToBases();
+        updateBaseEventsUI();
+    });
+    if (sel2) sel2.addEventListener('change', () => {
+        syncDropdownsToBases();
+        updateBaseEventsUI();
+    });
+    if (sel3) sel3.addEventListener('change', () => {
+        syncDropdownsToBases();
+        updateBaseEventsUI();
+    });
+    
+    // Initialize radio highlights and UI states
+    syncDropdownsToBases();
+    updateBaseEventsUI();
     updateOffenseHighlights();
     updateDefenseHighlights();
     updatePitchCounterDefenseUI();

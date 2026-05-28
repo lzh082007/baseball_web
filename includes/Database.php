@@ -8,7 +8,7 @@ class Database {
     }
 
     public function __construct() {
-        $host = 'localhost';
+        $host = '127.0.0.1';
         $db   = 'baseball_web';
         $user = 'root';
         $pass = ''; 
