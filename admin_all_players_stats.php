@@ -527,7 +527,7 @@ foreach ($players as $p) {
             <!-- Main Content -->
             <div>
                 
-                <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 4px 15px rgba(0,0,0,0.06); border:1px solid #eee;">
+                <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 4px 15px rgba(0,0,0,0.06); border:1px solid #eee; height: 365px; box-sizing: border-box;">
                     <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--primary); padding-bottom:10px;">
                         <i class="fas fa-users" style="margin-right:8px; color:var(--primary);"></i>球員累計數據
                     </h3>
@@ -541,7 +541,7 @@ foreach ($players as $p) {
 
                     <!-- ── 所有打者數據區 ── -->
                     <div id="stats-section-batter" class="stats-section" style="display:block;">
-                        <div style="max-height: 280px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="height: 180px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                             <table class="stats-table-clean" style="min-width:1750px; margin-bottom: 0;">
                                 <thead>
                                     <tr>
@@ -619,7 +619,7 @@ foreach ($players as $p) {
 
                     <!-- ── 所有投手數據區 ── -->
                     <div id="stats-section-pitcher" class="stats-section" style="display:none;">
-                        <div style="max-height: 280px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="height: 180px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                             <table class="stats-table-clean" style="min-width:2050px; margin-bottom: 0;">
                                 <thead>
                                     <tr>
@@ -707,7 +707,7 @@ foreach ($players as $p) {
 
                     <!-- ── 所有投手特性數據區 ── -->
                     <div id="stats-section-characteristic" class="stats-section" style="display:none;">
-                        <div style="max-height: 280px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="height: 180px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                             <table class="stats-table-clean" style="min-width:1050px; margin-bottom: 0;">
                                 <thead>
                                     <tr>

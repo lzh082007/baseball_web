@@ -80,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             'position'       => isset($_POST['position']) && is_array($_POST['position']) ? implode(',', $_POST['position']) : '',
             'height'         => (int)$_POST['height'] ?: null,
             'weight'         => (int)$_POST['weight'] ?: null,
-            'pitching_speed' => (int)$_POST['pitching_speed'] ?: null,
         ];
 
         if ($playerData) {
@@ -177,12 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <h4>體重</h4>
                         <div class="stats-value stats-black"><?= $playerData && $playerData['weight'] ? $playerData['weight'] . '<small style="font-size:1rem;"> kg</small>' : '—' ?></div>
                     </div>
-                    <?php if ($playerData && $playerData['pitching_speed']): ?>
-                    <div class="member-stats-card">
-                        <h4>球速</h4>
-                        <div class="stats-value stats-primary"><?= $playerData['pitching_speed'] ?><small style="font-size:1rem;"> km/h</small></div>
-                    </div>
-                    <?php endif; ?>
+
                 </div>
 
                 <?php if (!$playerData): ?>
@@ -1051,13 +1045,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                         placeholder="例：75">
                                 </div>
                             </div>
-                            <div style="margin-bottom:20px;">
-                                <label style="display:block; margin-bottom:6px; font-weight:600; color:#555; font-size:0.9rem;">球速 (km/h) <span style="color:#aaa; font-weight:400;">（投手填寫）</span></label>
-                                <input type="number" name="pitching_speed" min="0" max="200"
-                                    value="<?= $playerData ? (int)$playerData['pitching_speed'] : '' ?>"
-                                    style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"
-                                    placeholder="例：138">
-                            </div>
+
                             <button type="submit"
                                 style="width:100%; padding:11px; background:var(--secondary); color:#1a1a1a; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.95rem;">
                                 儲存球員數據

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 28 日 04:02
+-- 產生時間： 2026 年 05 月 28 日 04:20
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
@@ -308,7 +308,6 @@ CREATE TABLE `player` (
   `position` varchar(255) DEFAULT NULL,
   `height` int(11) DEFAULT NULL COMMENT '身高 (cm)',
   `weight` int(11) DEFAULT NULL COMMENT '體重 (kg)',
-  `pitching_speed` int(11) DEFAULT NULL COMMENT '球速 (km/h)',
   `image_path` varchar(255) DEFAULT NULL COMMENT '球員照片檔案路徑'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -316,19 +315,19 @@ CREATE TABLE `player` (
 -- 傾印資料表的資料 `player`
 --
 
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(1, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 79, 127, 'uploads/players/1778663574_IMG_3109.JPG');
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(21, 1, 7, '球員1', '1', '投手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(22, 1, 8, '球員2', '2', '捕手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(23, 1, 9, '球員3', '3', '內野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(24, 1, 10, '球員4', '4', '內野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(25, 1, 11, '球員5', '5', '內野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(26, 1, 12, '球員6', '6', '內野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(27, 1, 13, '球員7', '7', '外野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(28, 1, 14, '球員8', '8', '外野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(29, 1, 15, '球員9', '9', '外野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(30, 1, 16, '球員10', '10', '投手,捕手,內野手,外野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(31, 1, 17, '球員11', '11', '投手,捕手,內野手,外野手', 175, 70, 0, NULL);
-INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `pitching_speed`, `image_path`) VALUES(32, 1, 18, '球員12', '12', '投手,捕手,內野手,外野手', 175, 70, 0, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(1, 1, 4, '劉詠傑', '21', '投手,內野手', 180, 79, 'uploads/players/1778663574_IMG_3109.JPG');
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(21, 1, 7, '球員1', '1', '投手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(22, 1, 8, '球員2', '2', '捕手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(23, 1, 9, '球員3', '3', '內野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(24, 1, 10, '球員4', '4', '內野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(25, 1, 11, '球員5', '5', '內野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(26, 1, 12, '球員6', '6', '內野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(27, 1, 13, '球員7', '7', '外野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(28, 1, 14, '球員8', '8', '外野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(29, 1, 15, '球員9', '9', '外野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(30, 1, 16, '球員10', '10', '投手,捕手,內野手,外野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(31, 1, 17, '球員11', '11', '投手,捕手,內野手,外野手', 175, 70, NULL);
+INSERT INTO `player` (`Player_id`, `Team_Id`, `mId`, `Player_Name`, `jersey_number`, `position`, `height`, `weight`, `image_path`) VALUES(32, 1, 18, '球員12', '12', '投手,捕手,內野手,外野手', 175, 70, NULL);
 
 -- --------------------------------------------------------
 
