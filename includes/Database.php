@@ -23,6 +23,16 @@ class Database {
 
         try {
             $this->pdo = new PDO($dsn, $user, $pass, $options);
+            
+            // Check & alter player_game_details for hard_hit & soft_hit
+            $stmt = $this->pdo->query("DESCRIBE `player_game_details`");
+            $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('hard_hit', $cols)) {
+                $this->pdo->exec("ALTER TABLE `player_game_details` ADD COLUMN `hard_hit` int(11) DEFAULT 0");
+            }
+            if (!in_array('soft_hit', $cols)) {
+                $this->pdo->exec("ALTER TABLE `player_game_details` ADD COLUMN `soft_hit` int(11) DEFAULT 0");
+            }
         } catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }

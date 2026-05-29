@@ -79,6 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'gb_count' => (int)$_POST['gb_count'],
                 'ld_count' => (int)$_POST['ld_count'],
                 'fb_count' => (int)$_POST['fb_count'],
+                'hard_hit' => (int)($_POST['hard_hit'] ?? 0),
+                'soft_hit' => (int)($_POST['soft_hit'] ?? 0),
             ]);
             $msg = '球員數據已新增！';
         }
@@ -142,6 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'gb_count' => (int)$_POST['gb_count'],
                 'ld_count' => (int)$_POST['ld_count'],
                 'fb_count' => (int)$_POST['fb_count'],
+                'hard_hit' => (int)($_POST['hard_hit'] ?? 0),
+                'soft_hit' => (int)($_POST['soft_hit'] ?? 0),
             ]);
             $msg = '球員數據已更新！';
         }
@@ -422,6 +426,16 @@ function getPlayerName($pid, $players) {
                                 <div class="form-group">
                                     <label style="display:block; margin-bottom:8px; font-weight:500; color:#555; font-size:0.95rem;">高飛球次數</label>
                                     <input type="number" name="fb_count" min="0" value="<?= $editStat ? $editStat['fb_count'] : '0' ?>" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+                                </div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                                <div class="form-group">
+                                    <label style="display:block; margin-bottom:8px; font-weight:500; color:#555; font-size:0.95rem;">強勁擊球次數 (Hard Hit)</label>
+                                    <input type="number" name="hard_hit" min="0" value="<?= $editStat ? ($editStat['hard_hit'] ?? '0') : '0' ?>" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+                                </div>
+                                <div class="form-group">
+                                    <label style="display:block; margin-bottom:8px; font-weight:500; color:#555; font-size:0.95rem;">軟弱擊球次數 (Soft Hit)</label>
+                                    <input type="number" name="soft_hit" min="0" value="<?= $editStat ? ($editStat['soft_hit'] ?? '0') : '0' ?>" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
                                 </div>
                             </div>
                         </div>

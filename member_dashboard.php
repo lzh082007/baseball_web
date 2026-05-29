@@ -22,6 +22,13 @@ $in_progress_stmt = $pdo->prepare("SELECT game_id FROM game_live_state WHERE is_
 $in_progress_stmt->execute();
 $in_progress_games = $in_progress_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
+// Pre-fetch all lineup positions into an in-memory lookup array to avoid N+1 queries
+$all_lineups = $pdo->query("SELECT DISTINCT game_id, player_id, position FROM game_lineups")->fetchAll();
+$lineupLookup = [];
+foreach ($all_lineups as $l) {
+    $lineupLookup[$l['game_id']][$l['player_id']][] = $l['position'];
+}
+
 $msg = '';
 $msgType = 'success';
 
@@ -304,6 +311,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $b_sb = 0;
                         $b_go = 0;
                         $b_fo = 0;
+                        $b_hard_hit = 0;
+                        $b_soft_hit = 0;
 
                         foreach ($myStats as $s) {
                             if (($s['pa_count'] ?? 0) > 0 || !empty($s['pa_results'])) {
@@ -312,6 +321,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 $b_rbi += (int)($s['rbi'] ?? 0);
                                 $b_runs += (int)($s['runs'] ?? 0);
                                 $b_sb += (int)($s['stolen_bases'] ?? 0);
+                                $b_hard_hit += (int)($s['hard_hit'] ?? 0);
+                                $b_soft_hit += (int)($s['soft_hit'] ?? 0);
 
                                 if (!empty($s['pa_results'])) {
                                     $results = array_map('trim', explode(',', $s['pa_results']));
@@ -586,7 +597,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <i class="fas fa-calculator" style="color:#000;"></i> 打者生涯總數據
                                 </h4>
                                 <div style="overflow-x:auto;">
-                                    <table class="stats-table-clean" style="min-width:1700px;">
+                                    <table class="stats-table-clean" style="min-width:1800px;">
                                         <thead>
                                             <tr>
                                                 <th>統計</th>
@@ -607,6 +618,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                 <th>短打</th>
                                                 <th>犧飛</th>
                                                 <th>盜壘</th>
+                                                <th>強勁</th>
+                                                <th>軟弱</th>
                                                 <th>打擊率</th>
                                                 <th>上壘率</th>
                                                 <th>長打率</th>
@@ -639,6 +652,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                 <td><?= $b_sac ?></td>
                                                 <td><?= $b_sf ?></td>
                                                 <td><?= $b_sb ?></td>
+                                                <td><?= $b_hard_hit ?></td>
+                                                <td><?= $b_soft_hit ?></td>
                                                 <td style="font-weight:bold;"><?= number_format($b_avg, 3) ?></td>
                                                 <td style="font-weight:bold;"><?= number_format($b_obp, 3) ?></td>
                                                 <td style="font-weight:bold;"><?= number_format($b_slg, 3) ?></td>
@@ -660,7 +675,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 <i class="fas fa-list" style="color:#000;"></i> 打者單場比賽數據明細
                             </h4>
                             <div style="overflow-x:auto;">
-                                <table class="stats-table-clean" style="min-width:1040px;">
+                                <table class="stats-table-clean" style="min-width:1140px;">
                                     <thead>
                                         <tr>
                                             <th>比賽</th>
@@ -669,6 +684,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                             <th>打點</th>
                                             <th>得分</th>
                                             <th>盜壘</th>
+                                            <th>強勁擊球</th>
+                                            <th>軟弱擊球</th>
                                             <th>滾地出局</th>
                                             <th>高飛出局</th>
                                             <th>打席結果</th>
@@ -681,9 +698,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                             <td style="font-weight:bold; text-align:left; padding-left:10px;"><?= htmlspecialchars(getGameName($s["game_id"], $games)) ?></td>
                                             <td>
                                                 <?php
-                                                $lineup_stmt = $pdo->prepare("SELECT DISTINCT position FROM game_lineups WHERE game_id = ? AND player_id = ?");
-                                                $lineup_stmt->execute([$s['game_id'], $playerData['Player_id']]);
-                                                $positions = $lineup_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+                                                $positions = $lineupLookup[$s['game_id']][$playerData['Player_id']] ?? [];
                                                 $translated_positions = array_map('translatePosition', $positions);
                                                 echo htmlspecialchars(!empty($translated_positions) ? implode(', ', $translated_positions) : '無紀錄');
                                                 ?>
@@ -692,6 +707,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                             <td><?= $s['rbi'] ?></td>
                                             <td><?= $s['runs'] ?></td>
                                             <td><?= $s['stolen_bases'] ?></td>
+                                            <td><?= $s['hard_hit'] ?? 0 ?></td>
+                                            <td><?= $s['soft_hit'] ?? 0 ?></td>
                                             <?php
                                             $s_go = (int)($s['go_outs'] ?? 0);
                                             $s_fo = (int)($s['fo_outs'] ?? 0);
@@ -1156,6 +1173,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SB</span>
                                     <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">盜壘</strong>
                                     <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">盜壘成功次數 (Stolen Bases)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">HH / SH</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">強勁 / 軟弱擊球</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">強勁擊球 (Hard Hit) 及軟弱擊球 (Soft Hit) 的累計次數。用以評估擊球初速與擊球狀態，判斷打者擊球品質。</p>
                                 </div>
                                 <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
                                     <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">AVG</span>

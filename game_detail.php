@@ -124,7 +124,7 @@ foreach ($stats as $s) {
 <div class="page-header">
     <h1>賽事詳細資訊</h1>
     <p>日期：<?= htmlspecialchars($game['game_date']) ?> | 對手：<?= htmlspecialchars($game['opponent']) ?> | 結果：<?php
-        if ($live_state && (int)($live_state['is_ended'] ?? 0) === 0) {
+        if ($live_state && (int)($live_state['is_ended'] ?? 0) === 0 && empty($game['result'])) {
             echo '<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; display: inline-block; animation: pulse 1.5s infinite; vertical-align: middle;"><i class="fas fa-broadcast-tower" style="margin-right: 4px;"></i>LIVE 即時直播中</span>';
         } else {
             echo htmlspecialchars($game['result'] ?: '未開始');
@@ -262,7 +262,7 @@ foreach ($stats as $s) {
             <?php endif; ?>
 
             <?php 
-            $is_in_progress = ($live_state && (int)$live_state['is_ended'] == 0);
+            $is_in_progress = ($live_state && (int)$live_state['is_ended'] == 0 && empty($game['result']));
             if ($is_in_progress): ?>
                 <div style="background: white; border-radius: 12px; padding: 40px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center;">
                     <i class="fas fa-baseball-bat-ball fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
@@ -469,6 +469,49 @@ foreach ($stats as $s) {
             </div>
             <?php endif; ?>
         <?php endif; ?>
+
+        <!-- Play-by-Play Log Card -->
+        <?php
+        $logs_stmt = $pdo->prepare("SELECT * FROM game_live_logs WHERE game_id = ? ORDER BY id DESC");
+        $logs_stmt->execute([$game_id]);
+        $game_logs = $logs_stmt->fetchAll();
+        ?>
+        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 25px;">
+            <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> 本場比賽打席紀錄歷史 (Play-by-Play Timeline)</span>
+                <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">最新紀錄顯示在最上方</span>
+            </h3>
+            <div style="max-height: 400px; overflow-y: auto; padding-right:5px; margin-top:15px;">
+                <?php if (empty($game_logs)): ?>
+                    <div style="text-align:center; color:#94a3b8; padding:20px; font-size:0.9rem;">本場比賽暫無打席敘述紀錄。</div>
+                <?php else: ?>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <?php foreach ($game_logs as $log): ?>
+                            <div style="display:flex; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; gap:12px; transition: 0.2s;">
+                                <div style="display:flex; flex-direction:column; align-items:center; background:#1e293b; color:white; padding:6px 10px; border-radius:6px; min-width:65px; text-align:center;">
+                                    <span style="font-size:0.85rem; font-weight:800;"><?= $log['inning'] ?>局<?= $log['is_top'] ? '上' : '下' ?></span>
+                                    <span style="font-size:0.7rem; opacity:0.85; margin-top:2px;"><?= $log['outs'] ?>出局</span>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                        <span style="background:<?= $log['type'] === 'offense' ? '#3b82f6' : '#64748b' ?>; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
+                                            <?= $log['type'] === 'offense' ? '我方進攻' : '對手進攻' ?>
+                                        </span>
+                                        <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; font-family:'Outfit',sans-serif;">
+                                            <?= htmlspecialchars($log['pa_result']) ?>
+                                        </span>
+                                        <span style="font-size:0.7rem; color:#94a3b8;"><?= $log['created_at'] ?></span>
+                                    </div>
+                                    <div style="font-size:0.9rem; color:#334155; font-weight:600; line-height:1.4;">
+                                        <?= htmlspecialchars($log['description'] ?: '無打席描述') ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 </section>
 

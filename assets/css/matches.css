@@ -142,3 +142,29 @@
         flex: 1;
     }
 }
+
+.badge-live {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #2E7D32;
+    animation: live-pulse 2s infinite ease-in-out;
+}
+
+@keyframes live-pulse {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(46, 125, 50, 0.4);
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
+
+.badge-today {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #0369a1;
+}

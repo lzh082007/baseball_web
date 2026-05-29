@@ -24,6 +24,13 @@ $in_progress_games = $in_progress_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
 // Get all games
 $games = $db->getAll('game');
 
+// Pre-fetch all lineup positions into an in-memory lookup array to avoid N+1 queries
+$all_lineups = $pdo->query("SELECT DISTINCT game_id, player_id, position FROM game_lineups")->fetchAll();
+$lineupLookup = [];
+foreach ($all_lineups as $l) {
+    $lineupLookup[$l['game_id']][$l['player_id']][] = $l['position'];
+}
+
 if (!function_exists('getGameName')) {
     function getGameName($gid, $games) {
         foreach($games as $g) {
@@ -185,6 +192,7 @@ foreach ($players as $p) {
     $b_1b = 0; $b_2b = 0; $b_3b = 0; $b_hr = 0;
     $b_so = 0; $b_bb = 0; $b_hbp = 0; $b_sf = 0; $b_sac = 0; $b_sb = 0;
     $b_go = 0; $b_fo = 0;
+    $b_hard_hit = 0; $b_soft_hit = 0;
     
     foreach ($pDetails as $s) {
         if (($s['pa_count'] ?? 0) > 0 || !empty($s['pa_results'])) {
@@ -193,6 +201,8 @@ foreach ($players as $p) {
             $b_rbi += (int)($s['rbi'] ?? 0);
             $b_runs += (int)($s['runs'] ?? 0);
             $b_sb += (int)($s['stolen_bases'] ?? 0);
+            $b_hard_hit += (int)($s['hard_hit'] ?? 0);
+            $b_soft_hit += (int)($s['soft_hit'] ?? 0);
 
             if (!empty($s['pa_results'])) {
                 $results = array_map('trim', explode(',', $s['pa_results']));
@@ -264,6 +274,8 @@ foreach ($players as $p) {
         'sac' => $b_sac,
         'sf' => $b_sf,
         'sb' => $b_sb,
+        'hard_hit' => $b_hard_hit,
+        'soft_hit' => $b_soft_hit,
         'avg' => $b_avg,
         'obp' => $b_obp,
         'slg' => $b_slg,
@@ -542,7 +554,7 @@ foreach ($players as $p) {
                     <!-- ── 所有打者數據區 ── -->
                     <div id="stats-section-batter" class="stats-section" style="display:block;">
                         <div style="height: 180px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
-                            <table class="stats-table-clean" style="min-width:1750px; margin-bottom: 0;">
+                            <table class="stats-table-clean" style="min-width:1850px; margin-bottom: 0;">
                                 <thead>
                                     <tr>
                                         <th style="width: 100px;">姓名</th>
@@ -564,6 +576,8 @@ foreach ($players as $p) {
                                         <th>短打</th>
                                         <th>犧飛</th>
                                         <th>盜壘</th>
+                                        <th>強勁</th>
+                                        <th>軟弱</th>
                                         <th>打擊率</th>
                                         <th>上壘率</th>
                                         <th>長打率</th>
@@ -600,6 +614,8 @@ foreach ($players as $p) {
                                         <td><?= $bs['sac'] ?></td>
                                         <td><?= $bs['sf'] ?></td>
                                         <td><?= $bs['sb'] ?></td>
+                                        <td><?= $bs['hard_hit'] ?></td>
+                                        <td><?= $bs['soft_hit'] ?></td>
                                         <td style="font-weight:bold;"><?= number_format($bs['avg'], 3) ?></td>
                                         <td style="font-weight:bold;"><?= number_format($bs['obp'], 3) ?></td>
                                         <td style="font-weight:bold;"><?= number_format($bs['slg'], 3) ?></td>
@@ -820,9 +836,7 @@ foreach ($players as $p) {
                                                 <td style="font-weight:bold; text-align:left; padding-left:10px;"><?= htmlspecialchars(getGameName($s['game_id'], $games)) ?></td>
                                                 <td>
                                                     <?php
-                                                    $lineup_stmt = $pdo->prepare("SELECT DISTINCT position FROM game_lineups WHERE game_id = ? AND player_id = ?");
-                                                    $lineup_stmt->execute([$s['game_id'], $pId]);
-                                                    $positions = $lineup_stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+                                                    $positions = $lineupLookup[$s['game_id']][$pId] ?? [];
                                                     $translated_positions = array_map('translatePosition', $positions);
                                                     echo htmlspecialchars(!empty($translated_positions) ? implode(', ', $translated_positions) : '無紀錄');
                                                     ?>
@@ -1173,6 +1187,16 @@ foreach ($players as $p) {
                                     <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者擊球或保送使得壘上跑者（或打者本身）回本壘得分之點數 (Runs Batted In)。</p>
                                 </div>
                                 <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SB</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">盜壘</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">盜壘成功次數 (Stolen Bases)。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
+                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">HH / SH</span>
+                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">強勁 / 軟弱擊球</strong>
+                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">強勁擊球 (Hard Hit) 及軟弱擊球 (Soft Hit) 的累計次數。用以評估擊球初速與擊球狀態，判斷打者擊球品質。</p>
+                                </div>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
                                     <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">R</span>
                                     <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">得分</strong>
                                     <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">打者上壘後成功回到本壘得分的次數 (Runs Scored)。</p>
@@ -1192,11 +1216,7 @@ foreach ($players as $p) {
                                     <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">短打 / 犧飛</strong>
                                     <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">犧牲短打 (Sacrifice Bunts) 與高飛犧牲打 (Sacrifice Flies) 次數。</p>
                                 </div>
-                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
-                                    <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">SB</span>
-                                    <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">盜壘</strong>
-                                    <p style="margin:6px 0 0 0; font-size:0.8rem; color:#64748b; line-height:1.5;">盜壘成功次數 (Stolen Bases)。</p>
-                                </div>
+
                                 <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px; box-sizing:border-box;">
                                     <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:800; font-family:'Outfit',sans-serif;">AVG</span>
                                     <strong style="font-size:0.95rem; margin-left:6px; color:#1e293b;">打擊率</strong>

@@ -65,6 +65,20 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS `game_live_state` (
   FOREIGN KEY (`game_id`) REFERENCES `game` (`Game_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS `game_live_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `game_id` int(11) NOT NULL,
+  `inning` int(11) NOT NULL,
+  `is_top` tinyint(4) NOT NULL,
+  `outs` int(11) NOT NULL,
+  `pa_result` varchar(20) NOT NULL,
+  `description` text DEFAULT NULL,
+  `type` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`game_id`) REFERENCES `game` (`Game_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
 $alter_cols = [
     'our_score' => 'int(11) NOT NULL DEFAULT 0',
     'opponent_score' => 'int(11) NOT NULL DEFAULT 0',
@@ -433,6 +447,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $details = $stmt->fetch();
                 
                 $runs_diff = $runs_updates[$batter_id] ?? 0;
+                $hard_hit_diff = isset($_POST['hard_hit']) ? (int)$_POST['hard_hit'] : 0;
+                $soft_hit_diff = isset($_POST['soft_hit']) ? (int)$_POST['soft_hit'] : 0;
+                
+                // Opponent's pitching & batter's state against the pitcher
+                $balls_diff = isset($_POST['balls']) ? (int)$_POST['balls'] : 0;
+                $strikes_diff = isset($_POST['strikes']) ? (int)$_POST['strikes'] : 0;
+                $swings_diff = isset($_POST['swings']) ? (int)$_POST['swings'] : 0;
+                $fps_diff = isset($_POST['first_pitch_swings']) ? (int)$_POST['first_pitch_swings'] : 0;
+                $whiffs_diff = isset($_POST['whiffs']) ? (int)$_POST['whiffs'] : 0;
+                $gb_diff_adv = isset($_POST['gb_count']) ? (int)$_POST['gb_count'] : 0;
+                $fb_diff_adv = isset($_POST['fb_count']) ? (int)$_POST['fb_count'] : 0;
+                $ld_diff_adv = isset($_POST['ld_count']) ? (int)$_POST['ld_count'] : 0;
                 
                 if ($details) {
                     $new_pa_count = (int)$details['pa_count'] + 1;
@@ -445,12 +471,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $new_rbi = (int)($details['rbi'] ?? 0) + $rbi_added;
                     $new_runs = (int)($details['runs'] ?? 0) + $runs_diff;
                     $new_sb = (int)($details['stolen_bases'] ?? 0) + $batter_sb;
+                    $new_hard_hit = (int)($details['hard_hit'] ?? 0) + $hard_hit_diff;
+                    $new_soft_hit = (int)($details['soft_hit'] ?? 0) + $soft_hit_diff;
 
-                    $pdo->prepare("UPDATE player_game_details SET pa_count = ?, pa_results = ?, go_outs = ?, fo_outs = ?, hit_by_pitch = ?, sac_fly = ?, sac_bunt = ?, rbi = ?, runs = ?, stolen_bases = ? WHERE id = ?")
-                        ->execute([$new_pa_count, $new_pa_results, $new_go, $new_fo, $new_hbp, $new_sf, $new_sac, $new_rbi, $new_runs, $new_sb, $details['id']]);
+                    $new_strikes = (int)($details['strikes'] ?? 0) + $strikes_diff;
+                    $new_balls = (int)($details['balls'] ?? 0) + $balls_diff;
+                    $new_swings = (int)($details['swings'] ?? 0) + $swings_diff;
+                    $new_fps = (int)($details['first_pitch_swings'] ?? 0) + $fps_diff;
+                    $new_whiffs = (int)($details['whiffs'] ?? 0) + $whiffs_diff;
+                    $new_gb = (int)($details['gb_count'] ?? 0) + $gb_diff_adv;
+                    $new_ld = (int)($details['ld_count'] ?? 0) + $ld_diff_adv;
+                    $new_fb = (int)($details['fb_count'] ?? 0) + $fb_diff_adv;
+
+                    $pdo->prepare("UPDATE player_game_details SET pa_count = ?, pa_results = ?, go_outs = ?, fo_outs = ?, hit_by_pitch = ?, sac_fly = ?, sac_bunt = ?, rbi = ?, runs = ?, stolen_bases = ?, hard_hit = ?, soft_hit = ?, strikes = ?, balls = ?, swings = ?, first_pitch_swings = ?, whiffs = ?, gb_count = ?, ld_count = ?, fb_count = ? WHERE id = ?")
+                        ->execute([$new_pa_count, $new_pa_results, $new_go, $new_fo, $new_hbp, $new_sf, $new_sac, $new_rbi, $new_runs, $new_sb, $new_hard_hit, $new_soft_hit, $new_strikes, $new_balls, $new_swings, $new_fps, $new_whiffs, $new_gb, $new_ld, $new_fb, $details['id']]);
                 } else {
-                    $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, pa_count, pa_results, go_outs, fo_outs, hit_by_pitch, sac_fly, sac_bunt, rbi, runs, stolen_bases) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                        ->execute([$game_id, $batter_id, $pa_result, $go_diff, $fo_diff, $hbp_diff, $sf_diff, $sac_diff, $rbi_added, $runs_diff, $batter_sb]);
+                    $pdo->prepare("INSERT INTO player_game_details (game_id, player_id, pa_count, pa_results, go_outs, fo_outs, hit_by_pitch, sac_fly, sac_bunt, rbi, runs, stolen_bases, hard_hit, soft_hit, strikes, balls, swings, first_pitch_swings, whiffs, gb_count, ld_count, fb_count) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                        ->execute([$game_id, $batter_id, $pa_result, $go_diff, $fo_diff, $hbp_diff, $sf_diff, $sac_diff, $rbi_added, $runs_diff, $batter_sb, $hard_hit_diff, $soft_hit_diff, $strikes_diff, $balls_diff, $swings_diff, $fps_diff, $whiffs_diff, $gb_diff_adv, $ld_diff_adv, $fb_diff_adv]);
                 }
 
                 // 7. 更新計分板狀態 (團隊分數與壘包狀態，包含 ID)
@@ -493,6 +530,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         ($next_third_id > 0 ? $next_third_id : null),
                         $new_inning, $new_is_top, $game_id
                     ]);
+
+                $play_desc = isset($_POST['play_desc']) ? trim($_POST['play_desc']) : '';
+                $pdo->prepare("INSERT INTO game_live_logs (game_id, inning, is_top, outs, pa_result, description, type) VALUES (?, ?, ?, ?, ?, ?, 'offense')")
+                    ->execute([$game_id, $curr_state['inning'], $curr_state['is_top'], $curr_state['outs'], $pa_result, $play_desc]);
                 
                 $msg = "我方打擊結果「{$pa_result}」及壘包跑者事件已成功登記！自動輪到下一棒 (第 {$next_order} 棒)。";
             }
@@ -686,6 +727,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $new_first, $new_second, $new_third, $new_inning, $new_is_top, $game_id
                         ]);
 
+                    $play_desc = isset($_POST['play_desc']) ? trim($_POST['play_desc']) : '';
+                    $pdo->prepare("INSERT INTO game_live_logs (game_id, inning, is_top, outs, pa_result, description, type) VALUES (?, ?, ?, ?, ?, ?, 'defense')")
+                        ->execute([$game_id, $curr_state['inning'], $curr_state['is_top'], $curr_state['outs'], $pa_result, $play_desc]);
+
                     $msg = "對方打擊結果「{$pa_result}」已登錄！我方投手投球數據及計分板已同步更新。";
                 } else {
                     $msg = "錯誤：目前沒有指定現役投手，無法登記對方打席。";
@@ -693,6 +738,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             }
         }
+    }
+
+    elseif ($action === 'delete_live_log') {
+        $log_id = (int)$_POST['log_id'];
+        $pdo->prepare("DELETE FROM game_live_logs WHERE id = ? AND game_id = ?")->execute([$log_id, $game_id]);
+        $msg = "已成功刪除該打席紀錄敘述。";
     }
 
     elseif ($action === 'update_scoreboard') {
@@ -1153,6 +1204,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $pdo->prepare("DELETE FROM game_lineups WHERE game_id = ?")->execute([$game_id]);
         $pdo->prepare("DELETE FROM game_pitchers WHERE game_id = ?")->execute([$game_id]);
         $pdo->prepare("DELETE FROM game_live_state WHERE game_id = ?")->execute([$game_id]);
+        $pdo->prepare("DELETE FROM player_game_details WHERE game_id = ?")->execute([$game_id]);
+        $pdo->prepare("DELETE FROM game_live_logs WHERE game_id = ?")->execute([$game_id]);
         
         $msg = "本場登記狀態與先發陣容已成功重設。";
     }
@@ -2149,15 +2202,157 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                         </div>
                     </div>
 
-                    <form method="POST" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <form method="POST" id="offense-pa-form" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                         <input type="hidden" name="action" value="record_pa">
                         <input type="hidden" name="recording_type" value="offense">
                         <input type="hidden" name="batter_id" value="<?= $current_batter['player_id'] ?>">
                         <input type="hidden" name="current_order" value="<?= $current_batter['batting_order'] ?>">
-                        <input type="hidden" name="pitches_thrown" value="0">
+                        <input type="hidden" name="pitches_thrown" id="offense_pitches_thrown" value="0">
 
                         <div>
-                            <!-- ── 壘包上所有跑者 ── -->
+                            <!-- ── 對手投球與打者狀態登記 ── -->
+                            <div style="background:#f8fafc; border: 1px solid #e2e8f0; padding:15px; border-radius:8px; margin-bottom:15px;">
+                                <h4 style="margin-top:0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; color: #334155; font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span><i class="fas fa-baseball-ball" style="color:var(--primary); margin-right:5px;"></i> 對手投球與打者狀態登記</span>
+                                    <button type="button" onclick="resetOffensePitchCounter()" style="background:#e2e8f0; border:none; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; color:#475569; cursor:pointer;">重設打席球數</button>
+                                </h4>
+
+                                <!-- B-S counts & total pitches display -->
+                                <div style="display:flex; justify-content:space-around; align-items:center; background:white; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:12px; text-align:center;">
+                                    <div>
+                                        <div style="font-size:0.7rem; color:#64748b; font-weight:bold; margin-bottom:4px;">BALL</div>
+                                        <div id="offense-ball-dots" style="display:flex; gap:4px; justify-content:center;">
+                                            <span class="off-ball-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                            <span class="off-ball-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                            <span class="off-ball-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                        </div>
+                                        <div id="offense-ball-text" style="font-size:1rem; font-weight:900; color:#10b981; margin-top:2px;">0</div>
+                                    </div>
+                                    
+                                    <div style="width:1px; height:30px; background:#e2e8f0;"></div>
+                                    
+                                    <div>
+                                        <div style="font-size:0.7rem; color:#64748b; font-weight:bold; margin-bottom:4px;">STRIKE</div>
+                                        <div id="offense-strike-dots" style="display:flex; gap:4px; justify-content:center;">
+                                            <span class="off-strike-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                            <span class="off-strike-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                        </div>
+                                        <div id="offense-strike-text" style="font-size:1rem; font-weight:900; color:#f59e0b; margin-top:2px;">0</div>
+                                    </div>
+
+                                    <div style="width:1px; height:30px; background:#e2e8f0;"></div>
+
+                                    <div>
+                                        <div style="font-size:0.7rem; color:#64748b; font-weight:bold; margin-bottom:4px;">OUT</div>
+                                        <div id="offense-out-dots" style="display:flex; gap:4px; justify-content:center;">
+                                            <span class="off-out-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                            <span class="off-out-dot" style="width:10px; height:10px; border-radius:50%; border:2px solid #cbd5e1; display:inline-block;"></span>
+                                        </div>
+                                        <div id="offense-out-text" style="font-size:1rem; font-weight:900; color:#ef4444; margin-top:2px;">0</div>
+                                    </div>
+
+                                    <div style="width:1px; height:30px; background:#e2e8f0;"></div>
+
+                                    <div>
+                                        <div style="font-size:0.7rem; color:#64748b; font-weight:bold; margin-bottom:4px;">此打席球數</div>
+                                        <div id="offense-pa-pitches" style="font-size:1.1rem; font-weight:900; color:#1e293b;">0</div>
+                                    </div>
+                                </div>
+
+                                <!-- Pitch count buttons -->
+                                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:6px;">
+                                    <button type="button" onclick="recordPitchOffense('strike')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#f59e0b; font-size:0.85rem;"><i class="fas fa-circle"></i></span>
+                                        <span style="font-size:0.7rem;">好球 (S)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchOffense('ball')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#10b981; font-size:0.85rem;"><i class="fas fa-circle"></i></span>
+                                        <span style="font-size:0.7rem;">壞球 (B)</span>
+                                    </button>
+                                </div>
+
+                                <!-- 進階投球特性快速記錄按鈕 -->
+                                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:6px;">
+                                    <button type="button" onclick="recordPitchOffense('foul')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#64748b; font-size:0.85rem;"><i class="fas fa-redo"></i></span>
+                                        <span style="font-size:0.7rem;">界外 (Foul)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchOffense('whiff')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#6366f1; font-size:0.85rem;"><i class="fas fa-wind"></i></span>
+                                        <span style="font-size:0.7rem;">揮空 (Whiff)</span>
+                                    </button>
+                                    <button type="button" id="o-fps-toggle-btn" onclick="toggleOffenseFirstPitchSwing()" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit; transition: 0.2s;">
+                                        <span style="color:#ec4899; font-size:0.85rem;" id="o-fps-icon"><i class="far fa-star"></i></span>
+                                        <span style="font-size:0.7rem;">首球揮棒</span>
+                                    </button>
+                                </div>
+                                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:10px;">
+                                    <button type="button" onclick="recordPitchOffense('gb')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#8b5cf6; font-size:0.85rem;"><i class="fas fa-arrow-down"></i></span>
+                                        <span style="font-size:0.7rem;">滾地球 (+1)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchOffense('fb')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#0ea5e9; font-size:0.85rem;"><i class="fas fa-arrow-up"></i></span>
+                                        <span style="font-size:0.7rem;">高飛球 (+1)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchOffense('ld')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#14b8a6; font-size:0.85rem;"><i class="fas fa-arrow-right"></i></span>
+                                        <span style="font-size:0.7rem;">平飛球 (+1)</span>
+                                    </button>
+                                </div>
+
+                                <!-- Advanced faced pitching stats -->
+                                <div style="margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+                                    <details style="width: 100%;">
+                                        <summary style="cursor: pointer; color: #64748b; font-size: 0.75rem; font-weight: bold; user-select: none;">顯示打者進階面對投球特性</summary>
+                                        <div style="margin-top: 8px;">
+                                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">好球數</label>
+                                                    <input type="number" name="strikes" id="o_strikes_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">壞球數</label>
+                                                    <input type="number" name="balls" id="o_balls_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">揮棒數</label>
+                                                    <input type="number" name="swings" id="o_swings_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                            </div>
+                                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">揮空數</label>
+                                                    <input type="number" name="whiffs" id="o_whiffs_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">滾地球</label>
+                                                    <input type="number" name="gb_count" id="o_gb_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">高飛球</label>
+                                                    <input type="number" name="fb_count" id="o_fb_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                            </div>
+                                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                                                <div>
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">平飛球</label>
+                                                    <input type="number" name="ld_count" id="o_ld_input" value="0" min="0" style="width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:4px; text-align:center;">
+                                                </div>
+                                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                                    <label style="display:block; font-size:0.65rem; color:#64748b; margin-bottom:2px;">首球揮棒</label>
+                                                    <div style="display:flex; gap:10px;">
+                                                        <label style="font-size:0.75rem; font-weight:normal; cursor:pointer;"><input type="radio" name="first_pitch_swings" id="o_fps_yes" value="1">是</label>
+                                                        <label style="font-size:0.75rem; font-weight:normal; cursor:pointer;"><input type="radio" name="first_pitch_swings" id="o_fps_no" value="0" checked>否</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+
+                                <!-- ── 壘包上所有跑者 ── -->
                             <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:15px;">
                                 <h4 style="margin:0 0 10px 0; font-size:0.85rem; color:#334155; font-weight:700; display:flex; align-items:center; gap:6px;">
                                     <i class="fas fa-running" style="color:var(--primary);"></i> 壘包上所有跑者
@@ -2199,6 +2394,21 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                 </div>
                             </div>
 
+                            <!-- 擊球品質/擊球狀態按鈕 -->
+                            <h4 style="margin-top:15px; font-size:0.95rem; color:#475569; margin-bottom:12px; border-top:1px dashed #e2e8f0; padding-top:15px;">擊球狀態 (選填)</h4>
+                            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:15px;">
+                                <input type="hidden" name="hard_hit" id="hard_hit_input" value="0">
+                                <input type="hidden" name="soft_hit" id="soft_hit_input" value="0">
+                                <button type="button" id="hard_hit_btn" onclick="toggleContactQuality('hard')" style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; cursor:pointer; font-weight:700; background:white; color:#475569; transition: all 0.25s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box;">
+                                    <span style="font-size:0.95rem; display:flex; align-items:center; gap:4px; font-weight:800;">💪 強勁擊球</span>
+                                    <span style="font-size:0.7rem; color:#64748b; font-weight:normal; margin-top:2px;">Hard Hit</span>
+                                </button>
+                                <button type="button" id="soft_hit_btn" onclick="toggleContactQuality('soft')" style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; cursor:pointer; font-weight:700; background:white; color:#475569; transition: all 0.25s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box;">
+                                    <span style="font-size:0.95rem; display:flex; align-items:center; gap:4px; font-weight:800;">🍃 軟弱擊球</span>
+                                    <span style="font-size:0.7rem; color:#64748b; font-weight:normal; margin-top:2px;">Soft Hit</span>
+                                </button>
+                            </div>
+
                             <h4 style="margin-top:0; font-size:0.95rem; color:#475569; margin-bottom:12px;">選擇打席結果</h4>
                             <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:15px;">
                                 <?php 
@@ -2209,7 +2419,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                 ];
                                 foreach($offense_pa_buttons as $code => $label): ?>
                                     <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; font-weight:700; transition:0.2s;" class="pa-label offense-pa-label">
-                                        <input type="radio" name="pa_result" value="<?= $code ?>" required style="display:none;" onchange="updateOffenseHighlights()">
+                                        <input type="radio" name="pa_result" value="<?= $code ?>" required style="position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;" onchange="updateOffenseHighlights()">
                                         <div style="font-size: 0.9rem;"><?= $code ?></div>
                                         <div style="font-size: 0.7rem; color:#64748b; margin-top:2px; font-weight:normal;"><?= $label ?></div>
                                     </label>
@@ -2331,6 +2541,11 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                             </div>
                         </div>
 
+                        <div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                            <label style="display:block; font-size:0.8rem; color:#475569; font-weight:bold; margin-bottom:4px;">打席描述 / 備註</label>
+                            <input type="text" name="play_desc" placeholder="例如：打出左外野深遠安打，送回跑者" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;">
+                        </div>
+
                         <button type="submit" style="background:var(--primary); color:white; border:none; padding:14px; font-size:1.1rem; font-weight:700; border-radius:6px; cursor:pointer; width:100%; box-shadow: 0 4px 10px rgba(200,0,0,0.15); margin-top: 20px; font-family: inherit;">
                             確認登記我方打席
                         </button>
@@ -2423,7 +2638,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                 </div>
 
                                 <!-- Pitch count buttons -->
-                                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:10px;">
+                                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:6px;">
                                     <button type="button" onclick="recordPitchDefense('strike')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
                                         <span style="color:#f59e0b; font-size:0.85rem;"><i class="fas fa-circle"></i></span>
                                         <span style="font-size:0.7rem;">好球 (S)</span>
@@ -2431,6 +2646,36 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                     <button type="button" onclick="recordPitchDefense('ball')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
                                         <span style="color:#10b981; font-size:0.85rem;"><i class="fas fa-circle"></i></span>
                                         <span style="font-size:0.7rem;">壞球 (B)</span>
+                                    </button>
+                                </div>
+
+                                <!-- 進階投球特性快速記錄按鈕 -->
+                                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:6px;">
+                                    <button type="button" onclick="recordPitchDefense('foul')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#64748b; font-size:0.85rem;"><i class="fas fa-redo"></i></span>
+                                        <span style="font-size:0.7rem;">界外 (Foul)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchDefense('whiff')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#6366f1; font-size:0.85rem;"><i class="fas fa-wind"></i></span>
+                                        <span style="font-size:0.7rem;">揮空 (Whiff)</span>
+                                    </button>
+                                    <button type="button" id="fps-toggle-btn" onclick="toggleFirstPitchSwing()" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit; transition: 0.2s;">
+                                        <span style="color:#ec4899; font-size:0.85rem;" id="fps-icon"><i class="far fa-star"></i></span>
+                                        <span style="font-size:0.7rem;">首球揮棒</span>
+                                    </button>
+                                </div>
+                                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:10px;">
+                                    <button type="button" onclick="recordPitchDefense('gb')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#8b5cf6; font-size:0.85rem;"><i class="fas fa-arrow-down"></i></span>
+                                        <span style="font-size:0.7rem;">滾地球 (+1)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchDefense('fb')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#0ea5e9; font-size:0.85rem;"><i class="fas fa-arrow-up"></i></span>
+                                        <span style="font-size:0.7rem;">高飛球 (+1)</span>
+                                    </button>
+                                    <button type="button" onclick="recordPitchDefense('ld')" style="padding:6px 2px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family: inherit;">
+                                        <span style="color:#14b8a6; font-size:0.85rem;"><i class="fas fa-arrow-right"></i></span>
+                                        <span style="font-size:0.7rem;">平飛球 (+1)</span>
                                     </button>
                                 </div>
 
@@ -2448,7 +2693,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:12px;">
                                     <?php foreach($offense_pa_buttons as $code => $label): ?>
                                         <label style="display:block; text-align:center; border: 1px solid #cbd5e1; padding: 6px 2px; border-radius: 6px; cursor:pointer; font-weight:700; transition:0.2s;" class="pa-label defense-pa-label">
-                                            <input type="radio" name="pa_result" value="<?= $code ?>" required style="display:none;" onchange="updateDefenseHighlights()">
+                                            <input type="radio" name="pa_result" value="<?= $code ?>" required style="position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;" onchange="updateDefenseHighlights()">
                                             <div style="font-size: 0.85rem;"><?= $code ?></div>
                                             <div style="font-size: 0.65rem; color:#64748b; font-weight:normal;"><?= $label ?></div>
                                         </label>
@@ -2514,6 +2759,11 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                             </div>
                                         </div>
                                     </details>
+                                </div>
+
+                                <div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                                    <label style="display:block; font-size:0.8rem; color:#475569; font-weight:bold; margin-bottom:4px;">對手打席描述 / 備註</label>
+                                    <input type="text" name="play_desc" placeholder="例如：打出平飛球被二壘手接殺" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;">
                                 </div>
 
                                 <button type="submit" style="background:#1e293b; color:white; border:none; padding:12px; font-size:1rem; font-weight:700; border-radius:6px; cursor:pointer; width:100%; box-shadow: 0 4px 8px rgba(0,0,0,0.15); margin-top: 15px; font-family: inherit;">
@@ -2703,6 +2953,56 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
     </div>
 </section>
 
+<!-- Play-by-Play Log Card -->
+<?php
+$logs_stmt = $pdo->prepare("SELECT * FROM game_live_logs WHERE game_id = ? ORDER BY id DESC");
+$logs_stmt->execute([$game_id]);
+$game_logs = $logs_stmt->fetchAll();
+?>
+<div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 25px;">
+    <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> 本場打席敘述歷史 (Play-by-Play Log)</span>
+        <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">最新紀錄顯示在最上方</span>
+    </h3>
+    <div style="max-height: 350px; overflow-y: auto; padding-right:5px; margin-top:15px;">
+        <?php if (empty($game_logs)): ?>
+            <div style="text-align:center; color:#94a3b8; padding:20px; font-size:0.9rem;">本場比賽暫無打席敘述紀錄。</div>
+        <?php else: ?>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <?php foreach ($game_logs as $log): ?>
+                    <div style="display:flex; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; gap:12px; transition: 0.2s;">
+                        <div style="display:flex; flex-direction:column; align-items:center; background:#1e293b; color:white; padding:6px 10px; border-radius:6px; min-width:65px; text-align:center;">
+                            <span style="font-size:0.85rem; font-weight:800;"><?= $log['inning'] ?>局<?= $log['is_top'] ? '上' : '下' ?></span>
+                            <span style="font-size:0.7rem; opacity:0.85; margin-top:2px;"><?= $log['outs'] ?>出局</span>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="background:<?= $log['type'] === 'offense' ? '#3b82f6' : '#64748b' ?>; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
+                                        <?= $log['type'] === 'offense' ? '我方進攻' : '對手進攻' ?>
+                                    </span>
+                                    <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; font-family:'Outfit',sans-serif;">
+                                        <?= htmlspecialchars($log['pa_result']) ?>
+                                    </span>
+                                    <span style="font-size:0.7rem; color:#94a3b8;"><?= $log['created_at'] ?></span>
+                                </div>
+                                <form method="POST" style="margin:0;" onsubmit="return confirm('確定要刪除這筆打席敘述紀錄嗎？');">
+                                    <input type="hidden" name="action" value="delete_live_log">
+                                    <input type="hidden" name="log_id" value="<?= $log['id'] ?>">
+                                    <button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem; padding:2px 6px;" title="刪除打席敘述"><i class="fas fa-trash-alt"></i> 刪除</button>
+                                </form>
+                            </div>
+                            <div style="font-size:0.9rem; color:#334155; font-weight:600; line-height:1.4;">
+                                <?= htmlspecialchars($log['description'] ?: '無打席描述') ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <!-- ── 4. 浮動 Modal 彈窗 (更換代打/更換投手/更換守備位置) ── -->
 <div id="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
     <!-- modal 代打 -->
@@ -2810,6 +3110,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
 </style>
 
 <script>
+const isOurOffense = <?= $is_our_offense ? 'true' : 'false' ?>;
 let defBalls = <?= (int)($live_state['balls'] ?? 0) ?>;
 let defStrikes = <?= (int)($live_state['strikes'] ?? 0) ?>;
 let defWildPitches = 0;
@@ -2821,8 +3122,243 @@ let defAdvancedBalls = <?= (int)($live_state['balls'] ?? 0) ?>;
 let defPitches = defAdvancedStrikes + defAdvancedBalls;
 let defAdvancedSwings = 0;
 let defAdvancedWhiffs = 0;
+let defAdvancedGB = 0;
+let defAdvancedFB = 0;
+let defAdvancedLD = 0;
+let defAdvancedFPS = 0;
 
 const basePitcherTotal = <?= (int)($pitcher_stats['pitches'] ?? 0) ?>;
+
+// 我方進攻打擊面對投球狀態變數
+let offBalls = isOurOffense ? <?= (int)($live_state['balls'] ?? 0) ?> : 0;
+let offStrikes = isOurOffense ? <?= (int)($live_state['strikes'] ?? 0) ?> : 0;
+let offAdvancedStrikes = offStrikes;
+let offAdvancedBalls = offBalls;
+let offPitches = offAdvancedStrikes + offAdvancedBalls;
+let offAdvancedSwings = 0;
+let offAdvancedWhiffs = 0;
+let offAdvancedGB = 0;
+let offAdvancedFB = 0;
+let offAdvancedLD = 0;
+let offAdvancedFPS = 0;
+let isOffenseSubmitting = false;
+
+function updatePitchCounterOffenseUI() {
+    // Balls indicator (up to 3 dots)
+    const ballDots = document.querySelectorAll('.off-ball-dot');
+    ballDots.forEach((dot, idx) => {
+        if (idx < offBalls) {
+            dot.style.background = '#10b981';
+            dot.style.borderColor = '#10b981';
+        } else {
+            dot.style.background = 'transparent';
+            dot.style.borderColor = '#cbd5e1';
+        }
+    });
+    
+    // Strikes indicator (up to 2 dots)
+    const strikeDots = document.querySelectorAll('.off-strike-dot');
+    strikeDots.forEach((dot, idx) => {
+        if (idx < offStrikes) {
+            dot.style.background = '#f59e0b';
+            dot.style.borderColor = '#f59e0b';
+        } else {
+            dot.style.background = 'transparent';
+            dot.style.borderColor = '#cbd5e1';
+        }
+    });
+
+    // Outs indicator (up to 2 dots)
+    const outDots = document.querySelectorAll('.off-out-dot');
+    const currentOutsFromDB = <?= (int)($live_state['outs'] ?? 0) ?>;
+    outDots.forEach((dot, idx) => {
+        if (idx < currentOutsFromDB) {
+            dot.style.background = '#ef4444';
+            dot.style.borderColor = '#ef4444';
+        } else {
+            dot.style.background = 'transparent';
+            dot.style.borderColor = '#cbd5e1';
+        }
+    });
+
+    // Update text readouts
+    const ballText = document.getElementById('offense-ball-text');
+    if (ballText) ballText.textContent = offBalls;
+    
+    const strikeText = document.getElementById('offense-strike-text');
+    if (strikeText) strikeText.textContent = offStrikes;
+
+    const outText = document.getElementById('offense-out-text');
+    if (outText) outText.textContent = currentOutsFromDB;
+
+    const paPitchesText = document.getElementById('offense-pa-pitches');
+    if (paPitchesText) paPitchesText.textContent = offPitches;
+
+    // Set hidden form input field
+    const pitchesThrownInput = document.getElementById('offense_pitches_thrown');
+    if (pitchesThrownInput) pitchesThrownInput.value = offPitches;
+
+    // Auto-sync strikes and balls to advanced inputs
+    const oStrikesInput = document.getElementById('o_strikes_input');
+    if (oStrikesInput) oStrikesInput.value = offAdvancedStrikes;
+
+    const oBallsInput = document.getElementById('o_balls_input');
+    if (oBallsInput) oBallsInput.value = offAdvancedBalls;
+
+    const oSwingsInput = document.getElementById('o_swings_input');
+    if (oSwingsInput) oSwingsInput.value = offAdvancedSwings;
+
+    const oWhiffsInput = document.getElementById('o_whiffs_input');
+    if (oWhiffsInput) oWhiffsInput.value = offAdvancedWhiffs;
+
+    const oGBInput = document.getElementById('o_gb_input');
+    if (oGBInput) oGBInput.value = offAdvancedGB;
+
+    const oFBInput = document.getElementById('o_fb_input');
+    if (oFBInput) oFBInput.value = offAdvancedFB;
+
+    const oLDInput = document.getElementById('o_ld_input');
+    if (oLDInput) oLDInput.value = offAdvancedLD;
+
+    const fpsRadioYes = document.getElementById('o_fps_yes');
+    const fpsRadioNo = document.getElementById('o_fps_no');
+    if (fpsRadioYes && fpsRadioNo) {
+        if (offAdvancedFPS === 1) {
+            fpsRadioYes.checked = true;
+        } else {
+            fpsRadioNo.checked = true;
+        }
+    }
+    updateOffenseFPSButtonUI();
+}
+
+function updateOffenseFPSButtonUI() {
+    const fpsBtn = document.getElementById('o-fps-toggle-btn');
+    const fpsIcon = document.getElementById('o-fps-icon');
+    if (fpsBtn && fpsIcon) {
+        if (offAdvancedFPS === 1) {
+            fpsBtn.style.background = '#fdf2f8';
+            fpsBtn.style.borderColor = '#fbcfe8';
+            fpsBtn.style.color = '#db2777';
+            fpsIcon.innerHTML = '<i class="fas fa-star"></i>';
+        } else {
+            fpsBtn.style.background = '#fff';
+            fpsBtn.style.borderColor = '#cbd5e1';
+            fpsBtn.style.color = 'inherit';
+            fpsIcon.innerHTML = '<i class="far fa-star"></i>';
+        }
+    }
+}
+
+function toggleOffenseFirstPitchSwing() {
+    offAdvancedFPS = (offAdvancedFPS === 1) ? 0 : 1;
+    updatePitchCounterOffenseUI();
+}
+
+function resetOffensePitchCounter() {
+    offBalls = 0;
+    offStrikes = 0;
+    offPitches = 0;
+    offAdvancedStrikes = 0;
+    offAdvancedBalls = 0;
+    offAdvancedSwings = 0;
+    offAdvancedWhiffs = 0;
+    offAdvancedGB = 0;
+    offAdvancedFB = 0;
+    offAdvancedLD = 0;
+    offAdvancedFPS = 0;
+    isOffenseSubmitting = false;
+    updatePitchCounterOffenseUI();
+}
+
+function recordPitchOffense(type) {
+    if (type === 'strike') {
+        offStrikes++;
+        offPitches++;
+        offAdvancedStrikes++;
+        updatePitchCounterOffenseUI();
+        if (offStrikes >= 3) {
+            const kRadio = document.querySelector('#offense-pa-form input[name="pa_result"][value="K"]');
+            if (kRadio) {
+                kRadio.checked = true;
+                updateOffenseHighlights();
+                if (!isOffenseSubmitting) {
+                    isOffenseSubmitting = true;
+                    setTimeout(() => {
+                        const form = document.getElementById('offense-pa-form');
+                        if (form) form.submit();
+                    }, 500);
+                }
+            }
+        }
+    } else if (type === 'ball') {
+        offBalls++;
+        offPitches++;
+        offAdvancedBalls++;
+        updatePitchCounterOffenseUI();
+        if (offBalls >= 4) {
+            const bbRadio = document.querySelector('#offense-pa-form input[name="pa_result"][value="BB"]');
+            if (bbRadio) {
+                bbRadio.checked = true;
+                updateOffenseHighlights();
+                if (!isOffenseSubmitting) {
+                    isOffenseSubmitting = true;
+                    setTimeout(() => {
+                        const form = document.getElementById('offense-pa-form');
+                        if (form) form.submit();
+                    }, 500);
+                }
+            }
+        }
+    } else if (type === 'foul') {
+        offPitches++;
+        offAdvancedStrikes++;
+        offAdvancedSwings++;
+        if (offStrikes < 2) {
+            offStrikes++;
+        }
+        updatePitchCounterOffenseUI();
+    } else if (type === 'whiff') {
+        offStrikes++;
+        offPitches++;
+        offAdvancedStrikes++;
+        offAdvancedSwings++;
+        offAdvancedWhiffs++;
+        updatePitchCounterOffenseUI();
+        if (offStrikes >= 3) {
+            const kRadio = document.querySelector('#offense-pa-form input[name="pa_result"][value="K"]');
+            if (kRadio) {
+                kRadio.checked = true;
+                updateOffenseHighlights();
+                if (!isOffenseSubmitting) {
+                    isOffenseSubmitting = true;
+                    setTimeout(() => {
+                        const form = document.getElementById('offense-pa-form');
+                        if (form) form.submit();
+                    }, 500);
+                }
+            }
+        }
+    } else if (type === 'gb') {
+        offPitches++;
+        offAdvancedStrikes++;
+        offAdvancedSwings++;
+        offAdvancedGB++;
+        updatePitchCounterOffenseUI();
+    } else if (type === 'fb') {
+        offPitches++;
+        offAdvancedStrikes++;
+        offAdvancedSwings++;
+        offAdvancedFB++;
+        updatePitchCounterOffenseUI();
+    } else if (type === 'ld') {
+        offPitches++;
+        offAdvancedStrikes++;
+        offAdvancedSwings++;
+        offAdvancedLD++;
+        updatePitchCounterOffenseUI();
+    }
+}
 
 function updatePitchCounterDefenseUI() {
     // Balls indicator (up to 3 dots)
@@ -2901,6 +3437,26 @@ function updatePitchCounterDefenseUI() {
     const pWhiffsInput = document.getElementById('d_whiffs_input');
     if (pWhiffsInput) pWhiffsInput.value = defAdvancedWhiffs;
 
+    const pGBInput = document.getElementById('d_gb_input');
+    if (pGBInput) pGBInput.value = defAdvancedGB;
+
+    const pFBInput = document.getElementById('d_fb_input');
+    if (pFBInput) pFBInput.value = defAdvancedFB;
+
+    const pLDInput = document.getElementById('d_ld_input');
+    if (pLDInput) pLDInput.value = defAdvancedLD;
+
+    const fpsRadioYes = document.querySelector('input[name="p_first_pitch_swing"][value="1"]');
+    const fpsRadioNo = document.querySelector('input[name="p_first_pitch_swing"][value="0"]');
+    if (fpsRadioYes && fpsRadioNo) {
+        if (defAdvancedFPS === 1) {
+            fpsRadioYes.checked = true;
+        } else {
+            fpsRadioNo.checked = true;
+        }
+    }
+    updateFPSButtonUI();
+
     // Display labels for WP & Balk if any
     const label = document.getElementById('defense-wp-balk-label');
     if (label) {
@@ -2958,9 +3514,49 @@ function recordPitchDefense(type) {
     } else if (type === 'foul') {
         defPitches++;
         defAdvancedStrikes++;
+        defAdvancedSwings++;
         if (defStrikes < 2) {
             defStrikes++;
         }
+        updatePitchCounterDefenseUI();
+    } else if (type === 'whiff') {
+        defStrikes++;
+        defPitches++;
+        defAdvancedStrikes++;
+        defAdvancedSwings++;
+        defAdvancedWhiffs++;
+        updatePitchCounterDefenseUI();
+        if (defStrikes >= 3) {
+            const kRadio = document.querySelector('#defense-pa-form input[name="pa_result"][value="K"]');
+            if (kRadio) {
+                kRadio.checked = true;
+                updateDefenseHighlights();
+                if (!isSubmitting) {
+                    isSubmitting = true;
+                    setTimeout(() => {
+                        const form = document.getElementById('defense-pa-form');
+                        if (form) form.submit();
+                    }, 500);
+                }
+            }
+        }
+    } else if (type === 'gb') {
+        defPitches++;
+        defAdvancedStrikes++;
+        defAdvancedSwings++;
+        defAdvancedGB++;
+        updatePitchCounterDefenseUI();
+    } else if (type === 'fb') {
+        defPitches++;
+        defAdvancedStrikes++;
+        defAdvancedSwings++;
+        defAdvancedFB++;
+        updatePitchCounterDefenseUI();
+    } else if (type === 'ld') {
+        defPitches++;
+        defAdvancedStrikes++;
+        defAdvancedSwings++;
+        defAdvancedLD++;
         updatePitchCounterDefenseUI();
     } else if (type === 'wp') {
         defWildPitches++;
@@ -3007,8 +3603,157 @@ function resetPitchCounter() {
     defAdvancedBalls = 0;
     defAdvancedSwings = 0;
     defAdvancedWhiffs = 0;
+    defAdvancedGB = 0;
+    defAdvancedFB = 0;
+    defAdvancedLD = 0;
+    defAdvancedFPS = 0;
     isSubmitting = false;
     updatePitchCounterDefenseUI();
+}
+
+function toggleFirstPitchSwing() {
+    defAdvancedFPS = (defAdvancedFPS === 1) ? 0 : 1;
+    updatePitchCounterDefenseUI();
+}
+
+function updateFPSButtonUI() {
+    const fpsBtn = document.getElementById('fps-toggle-btn');
+    const fpsIcon = document.getElementById('fps-icon');
+    if (fpsBtn && fpsIcon) {
+        if (defAdvancedFPS === 1) {
+            fpsBtn.style.background = '#fdf2f8';
+            fpsBtn.style.borderColor = '#fbcfe8';
+            fpsBtn.style.color = '#db2777';
+            fpsIcon.innerHTML = '<i class="fas fa-star"></i>';
+        } else {
+            fpsBtn.style.background = '#fff';
+            fpsBtn.style.borderColor = '#cbd5e1';
+            fpsBtn.style.color = 'inherit';
+            fpsIcon.innerHTML = '<i class="far fa-star"></i>';
+        }
+    }
+}
+
+// 雙向綁定：手動修改進階欄位時同步回 JS 變數
+document.addEventListener('DOMContentLoaded', () => {
+    const pStrikesInput = document.getElementById('d_strikes_input');
+    const pBallsInput = document.getElementById('d_balls_input');
+    const pSwingsInput = document.getElementById('d_swings_input');
+    const pWhiffsInput = document.getElementById('d_whiffs_input');
+    const pGBInput = document.getElementById('d_gb_input');
+    const pFBInput = document.getElementById('d_fb_input');
+    const pLDInput = document.getElementById('d_ld_input');
+
+    if (pStrikesInput) pStrikesInput.addEventListener('input', (e) => { defAdvancedStrikes = parseInt(e.target.value) || 0; });
+    if (pBallsInput) pBallsInput.addEventListener('input', (e) => { defAdvancedBalls = parseInt(e.target.value) || 0; });
+    if (pSwingsInput) pSwingsInput.addEventListener('input', (e) => { defAdvancedSwings = parseInt(e.target.value) || 0; });
+    if (pWhiffsInput) pWhiffsInput.addEventListener('input', (e) => { defAdvancedWhiffs = parseInt(e.target.value) || 0; });
+    if (pGBInput) pGBInput.addEventListener('input', (e) => { defAdvancedGB = parseInt(e.target.value) || 0; });
+    if (pFBInput) pFBInput.addEventListener('input', (e) => { defAdvancedFB = parseInt(e.target.value) || 0; });
+    if (pLDInput) pLDInput.addEventListener('input', (e) => { defAdvancedLD = parseInt(e.target.value) || 0; });
+
+    document.querySelectorAll('input[name="p_first_pitch_swing"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (radio.checked) {
+                defAdvancedFPS = parseInt(radio.value) || 0;
+                updateFPSButtonUI();
+            }
+        });
+    });
+
+    // Offense pitch tracking double binding
+    const oStrikesInput = document.getElementById('o_strikes_input');
+    const oBallsInput = document.getElementById('o_balls_input');
+    const oSwingsInput = document.getElementById('o_swings_input');
+    const oWhiffsInput = document.getElementById('o_whiffs_input');
+    const oGBInput = document.getElementById('o_gb_input');
+    const oFBInput = document.getElementById('o_fb_input');
+    const oLDInput = document.getElementById('o_ld_input');
+
+    if (oStrikesInput) oStrikesInput.addEventListener('input', (e) => { offAdvancedStrikes = parseInt(e.target.value) || 0; });
+    if (oBallsInput) oBallsInput.addEventListener('input', (e) => { offAdvancedBalls = parseInt(e.target.value) || 0; });
+    if (oSwingsInput) oSwingsInput.addEventListener('input', (e) => { offAdvancedSwings = parseInt(e.target.value) || 0; });
+    if (oWhiffsInput) oWhiffsInput.addEventListener('input', (e) => { offAdvancedWhiffs = parseInt(e.target.value) || 0; });
+    if (oGBInput) oGBInput.addEventListener('input', (e) => { offAdvancedGB = parseInt(e.target.value) || 0; });
+    if (oFBInput) oFBInput.addEventListener('input', (e) => { offAdvancedFB = parseInt(e.target.value) || 0; });
+    if (oLDInput) oLDInput.addEventListener('input', (e) => { offAdvancedLD = parseInt(e.target.value) || 0; });
+
+    document.querySelectorAll('input[name="first_pitch_swings"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (radio.checked) {
+                offAdvancedFPS = parseInt(radio.value) || 0;
+                updateOffenseFPSButtonUI();
+            }
+        });
+    });
+
+    updatePitchCounterOffenseUI();
+});
+
+function toggleContactQuality(type) {
+    const hardHitInput = document.getElementById('hard_hit_input');
+    const softHitInput = document.getElementById('soft_hit_input');
+    const hardHitBtn = document.getElementById('hard_hit_btn');
+    const softHitBtn = document.getElementById('soft_hit_btn');
+    
+    if (!hardHitInput || !softHitInput || !hardHitBtn || !softHitBtn) return;
+    
+    let isHardActive = hardHitInput.value === '1';
+    let isSoftActive = softHitInput.value === '1';
+    
+    if (type === 'hard') {
+        if (isHardActive) {
+            // Deactivate
+            hardHitInput.value = '0';
+            hardHitBtn.style.background = 'white';
+            hardHitBtn.style.borderColor = '#cbd5e1';
+            hardHitBtn.style.color = '#475569';
+            hardHitBtn.querySelector('span:last-of-type').style.color = '#64748b';
+            hardHitBtn.style.boxShadow = 'none';
+        } else {
+            // Activate Hard, Deactivate Soft
+            hardHitInput.value = '1';
+            softHitInput.value = '0';
+            
+            hardHitBtn.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+            hardHitBtn.style.borderColor = '#ea580c';
+            hardHitBtn.style.color = 'white';
+            hardHitBtn.querySelector('span:last-of-type').style.color = '#ffedd5';
+            hardHitBtn.style.boxShadow = '0 4px 6px -1px rgba(234, 88, 12, 0.2)';
+            
+            softHitBtn.style.background = 'white';
+            softHitBtn.style.borderColor = '#cbd5e1';
+            softHitBtn.style.color = '#475569';
+            softHitBtn.querySelector('span:last-of-type').style.color = '#64748b';
+            softHitBtn.style.boxShadow = 'none';
+        }
+    } else if (type === 'soft') {
+        if (isSoftActive) {
+            // Deactivate
+            softHitInput.value = '0';
+            softHitBtn.style.background = 'white';
+            softHitBtn.style.borderColor = '#cbd5e1';
+            softHitBtn.style.color = '#475569';
+            softHitBtn.querySelector('span:last-of-type').style.color = '#64748b';
+            softHitBtn.style.boxShadow = 'none';
+        } else {
+            // Activate Soft, Deactivate Hard
+            softHitInput.value = '1';
+            hardHitInput.value = '0';
+            
+            softHitBtn.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
+            softHitBtn.style.borderColor = '#64748b';
+            softHitBtn.style.color = 'white';
+            softHitBtn.querySelector('span:last-of-type').style.color = '#f1f5f9';
+            softHitBtn.style.boxShadow = '0 4px 6px -1px rgba(100, 116, 139, 0.2)';
+            
+            hardHitBtn.style.background = 'white';
+            hardHitBtn.style.borderColor = '#cbd5e1';
+            hardHitBtn.style.color = '#475569';
+            hardHitBtn.querySelector('span:last-of-type').style.color = '#64748b';
+            hardHitBtn.style.boxShadow = 'none';
+        }
+    }
 }
 
 function updateOffenseHighlights() {
@@ -3042,6 +3787,7 @@ function updateOffenseHighlights() {
 }
 
 function syncDropdownsToBases() {
+    if (!isOurOffense) return;
     const base1 = document.getElementById('base-1');
     const base2 = document.getElementById('base-2');
     const base3 = document.getElementById('base-3');
