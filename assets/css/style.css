@@ -32,6 +32,7 @@ nav {
     height: 70px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 5%;
     position: sticky;
     top: 0;
@@ -46,20 +47,6 @@ nav {
     flex-shrink: 0;
 }
 
-.nav-links-container {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.user-action {
-    width: 20%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    flex-shrink: 0;
-}
-
 .logo img {
     height: 50px;
 }
@@ -69,6 +56,27 @@ nav {
     font-weight: 800;
     letter-spacing: 1px;
     color: var(--secondary);
+}
+
+.nav-menu {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.nav-links-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.user-action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+    min-width: 20%;
 }
 
 .nav-links {
@@ -95,9 +103,8 @@ nav {
     transform: translateY(-3px);
 }
 
-.header-nav-link,
-.nav-links a {
-    color: var(--text-white); /* Default: White */
+.header-nav-link {
+    color: var(--text-white);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.85rem;
@@ -108,8 +115,7 @@ nav {
     opacity: 0.85;
 }
 
-.header-nav-link:hover,
-.nav-links a:hover {
+.header-nav-link:hover {
     color: var(--secondary) !important;
     transform: translateY(-3px);
 }
@@ -142,6 +148,65 @@ nav {
 .btn-login:hover {
     background: #FF0000;
     transform: translateY(-2px);
+}
+
+.btn-login-header {
+    background: var(--primary);
+    color: var(--text-white) !important;
+    padding: 6px 20px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.btn-login-header:hover {
+    background: #FF0000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(200, 0, 0, 0.2);
+}
+
+.btn-logout {
+    background: transparent;
+    color: var(--text-white) !important;
+    border: 2px solid var(--primary);
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.btn-logout:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(200, 0, 0, 0.1);
+}
+
+/* Action Button Toggle for Mobile */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 28px;
+    height: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+}
+
+.nav-toggle .bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-white);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0);
 }
 
 /* Page Header (Replacing Hero) */
@@ -324,11 +389,67 @@ footer {
 }
 
 .footer-section h3 {
-    margin-bottom: 12px;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
     color: var(--secondary);
 }
 
-.footer-section a:hover {
+.footer-links {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+}
+
+.footer-links a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+    font-size: 1.1rem;
+}
+
+.footer-links a:hover {
+    color: var(--secondary) !important;
+    transform: translateY(-2px);
+    display: inline-block;
+}
+
+.footer-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-contact-empty {
+    color: #888;
+}
+
+.footer-contact-item {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-contact-item i {
+    color: var(--secondary);
+    font-size: 1.2rem;
+    width: 25px;
+    text-align: center;
+}
+
+.footer-contact-item a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-contact-item a:hover {
     color: var(--secondary) !important;
 }
 
@@ -545,4 +666,104 @@ footer {
 /* Admin Table Customization */
 .admin-table td, .admin-table th {
     white-space: nowrap;
+}
+
+/* RWD Media Queries */
+@media (max-width: 991px) {
+    .nav-toggle {
+        display: flex;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(26, 26, 26, 0.98);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        transform: translateY(-120%);
+        opacity: 0;
+        transition: transform 0.4s cubic-bezier(0.77, 0.2, 0.05, 1.0), opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 999;
+        padding: 40px 0;
+    }
+    
+    nav.nav-active .nav-menu {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    nav.nav-active .nav-toggle .bar:nth-child(1) {
+        transform: translateY(8.5px) rotate(45deg);
+    }
+    nav.nav-active .nav-toggle .bar:nth-child(2) {
+        opacity: 0;
+        transform: scale(0);
+    }
+    nav.nav-active .nav-toggle .bar:nth-child(3) {
+        transform: translateY(-8.5px) rotate(-45deg);
+    }
+    
+    .nav-links-container {
+        flex-grow: 0;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+    }
+    
+    .nav-links a {
+        font-size: 1.2rem;
+    }
+    
+    .user-action {
+        width: 100%;
+        justify-content: center;
+        flex-direction: column;
+        gap: 15px;
+        min-width: unset;
+    }
+
+    .user-action a {
+        width: 80%;
+        max-width: 250px;
+        text-align: center;
+        margin-left: 0 !important; /* Remove any old offset margins */
+    }
+    
+    .btn-login-header, .btn-logout {
+        padding: 10px 0;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 768px) {
+    footer {
+        padding: 40px 5% 20px;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        text-align: center;
+    }
+    
+    .footer-links {
+        justify-content: center;
+    }
+    
+    .footer-contact-item {
+        justify-content: center;
+    }
 }

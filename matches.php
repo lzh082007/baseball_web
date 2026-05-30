@@ -55,9 +55,9 @@ $defaultTab = !empty($todayGames) ? 'today-matches' : 'past-matches';
         
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
             <div class="matches-tabs" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px;">
-                <button class="btn-tab <?= $defaultTab === 'past-matches' ? 'active' : '' ?>" data-target="past-matches" style="height: 48px;">過去</button>
-                <button class="btn-tab <?= $defaultTab === 'today-matches' ? 'active' : '' ?>" data-target="today-matches" style="height: 48px;">今日</button>
-                <button class="btn-tab" data-target="future-matches" style="height: 48px;">未來</button>
+                <button class="btn-tab <?= $defaultTab === 'past-matches' ? 'active' : '' ?>" data-target="past-matches" style="height: 48px;">過去賽程</button>
+                <button class="btn-tab <?= $defaultTab === 'today-matches' ? 'active' : '' ?>" data-target="today-matches" style="height: 48px;">今日賽程</button>
+                <button class="btn-tab" data-target="future-matches" style="height: 48px;">未來賽程</button>
             </div>
             <form method="GET" class="search-bar-container" style="margin-bottom: 0;">
                 <input type="text" name="search" class="search-bar-input" placeholder="搜尋對手、日期或結果..." value="<?= htmlspecialchars($search) ?>">

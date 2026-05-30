@@ -1903,7 +1903,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                     </div>
 
                     <!-- Center: Inning Indicator & B/S/O Lights -->
-                    <div style="flex: 1.2; min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; padding: 0 15px; box-sizing: border-box;">
+                    <div class="scoreboard-center-panel">
                         <div style="font-size: 1.6rem; font-weight: 900; color: #f8fafc; margin-bottom: 12px; letter-spacing: 1px;">
                             <?php 
                             if ($live_state) {
@@ -2138,7 +2138,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
             </div>
 
             <!-- 2. Main 3-Column Grid Layout -->
-            <div style="display:grid; grid-template-columns: 285px 1.1fr 1.2fr; gap: 20px; align-items: stretch; margin-bottom: 30px;">
+            <div class="live-grid-container">
                 
                 <!-- 2.1 左側欄：打擊順序 -->
                 <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box; border: 1px solid #e2e8f0;">
@@ -3106,6 +3106,45 @@ $game_logs = $logs_stmt->fetchAll();
 }
 .pa-label:has(input[type="radio"]:checked) div {
     color: white !important;
+}
+
+/* RWD Layout Rules */
+.live-grid-container {
+    display: grid;
+    grid-template-columns: 285px 1.1fr 1.2fr;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 30px;
+}
+
+.scoreboard-center-panel {
+    flex: 1.2;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid #1e293b;
+    border-right: 1px solid #1e293b;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+    .live-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .scoreboard-center-panel {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid #1e293b;
+        border-bottom: 1px solid #1e293b;
+        padding: 15px 0;
+        margin: 10px 0;
+    }
 }
 </style>
 

@@ -49,27 +49,35 @@
             </a>
         </div>
         
-        <div class="nav-links-container">
-            <ul class="nav-links">
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>"><a href="index.php">首頁</a></li>
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'about.php' ? 'active' : '' ?>"><a href="about.php">球隊歷史</a></li>
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'matches.php' ? 'active' : '' ?>"><a href="matches.php">賽事資訊</a></li>
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'players.php' ? 'active' : '' ?>"><a href="players.php">球員陣容</a></li>
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'join.php' ? 'active' : '' ?>"><a href="join.php">招募資訊</a></li>
-                <li class="<?= basename($_SERVER['PHP_SELF']) == 'ob.php' ? 'active' : '' ?>"><a href="ob.php">OB 專區</a></li>
-            </ul>
+        <div class="nav-menu" id="navMenu">
+            <div class="nav-links-container">
+                <ul class="nav-links">
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>"><a href="index.php">首頁</a></li>
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'about.php' ? 'active' : '' ?>"><a href="about.php">球隊歷史</a></li>
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'matches.php' ? 'active' : '' ?>"><a href="matches.php">賽事資訊</a></li>
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'players.php' ? 'active' : '' ?>"><a href="players.php">球員陣容</a></li>
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'join.php' ? 'active' : '' ?>"><a href="join.php">招募資訊</a></li>
+                    <li class="<?= basename($_SERVER['PHP_SELF']) == 'ob.php' ? 'active' : '' ?>"><a href="ob.php">OB 專區</a></li>
+                </ul>
+            </div>
+
+            <div class="user-action">
+                <?php if (isLoggedIn()): ?>
+                    <a href="member_dashboard.php" class="header-nav-link gold-link <?= basename($_SERVER['PHP_SELF']) == 'member_dashboard.php' ? 'active' : '' ?>">我的數據</a>
+                    <?php if (isAdmin()): ?>
+                        <a href="admin_dashboard.php" class="header-nav-link gold-link <?= strpos(basename($_SERVER['PHP_SELF']), 'admin_') === 0 ? 'active' : '' ?>">管理後台</a>
+                    <?php endif; ?>
+                    <a href="logout.php" class="btn-logout">登出</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn-login-header">登入</a>
+                    <a href="register.php" class="header-nav-link <?= basename($_SERVER['PHP_SELF']) == 'register.php' ? 'active' : '' ?> register-link">註冊</a>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <div class="user-action" style="display: flex; align-items: center; gap: 20px;">
-            <?php if (isLoggedIn()): ?>
-                <a href="member_dashboard.php" class="header-nav-link gold-link <?= basename($_SERVER['PHP_SELF']) == 'member_dashboard.php' ? 'active' : '' ?>">我的數據</a>
-                <?php if (isAdmin()): ?>
-                    <a href="admin_dashboard.php" class="header-nav-link gold-link <?= strpos(basename($_SERVER['PHP_SELF']), 'admin_') === 0 ? 'active' : '' ?>">管理後台</a>
-                <?php endif; ?>
-                <a href="logout.php" class="btn-login" style="background: transparent; color: var(--text-white); border: 2px solid var(--primary); padding: 5px 15px; font-size: 0.8rem;">登出</a>
-            <?php else: ?>
-                <a href="login.php" class="btn-login" style="padding: 5px 20px; font-size: 0.9rem;">登入</a>
-                <a href="register.php" class="header-nav-link <?= basename($_SERVER['PHP_SELF']) == 'register.php' ? 'active' : '' ?>" style="margin-left: 10px;">註冊</a>
-            <?php endif; ?>
-        </div>
+        <button class="nav-toggle" id="navToggle" aria-label="切換選單">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
     </nav>

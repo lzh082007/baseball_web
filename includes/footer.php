@@ -6,28 +6,28 @@ if (!isset($db)) {
 $contactInfos = $db->getAll('contact_us');
 ?>
 <footer>
-    <div class="footer-content" style="display: flex; justify-content: center; align-items: flex-start; gap: 80px; max-width: 900px; margin: 0 auto; margin-bottom: 20px;">
+    <div class="footer-content">
         <div class="footer-section">
-            <h3 style="margin-bottom: 15px; font-size: 1.4rem; letter-spacing: 2px;">導覽連結</h3>
-            <ul style="list-style: none; padding: 0; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px 20px;">
-                <li><a href="index.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">首頁</a></li>
-                <li><a href="about.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">關於我們</a></li>
-                <li><a href="matches.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">賽事資訊</a></li>
-                <li><a href="players.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">球員資訊</a></li>
-                <li><a href="join.php" style="color: #ccc; text-decoration: none; transition: color 0.3s; font-size: 1.1rem;">加入我們</a></li>
+            <h3>導覽連結</h3>
+            <ul class="footer-links">
+                <li><a href="index.php">首頁</a></li>
+                <li><a href="about.php">關於我們</a></li>
+                <li><a href="matches.php">賽事資訊</a></li>
+                <li><a href="players.php">球員資訊</a></li>
+                <li><a href="join.php">加入我們</a></li>
             </ul>
         </div>
         <div class="footer-section">
-            <h3 style="margin-bottom: 15px; font-size: 1.4rem; letter-spacing: 2px;">聯繫我們</h3>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+            <h3>聯繫我們</h3>
+            <div class="footer-contact-list">
                 <?php if (empty($contactInfos)): ?>
-                    <p style="color: #888;">尚未設定聯絡資訊</p>
+                    <p class="footer-contact-empty">尚未設定聯絡資訊</p>
                 <?php else: ?>
                     <?php foreach ($contactInfos as $c): ?>
-                        <p style="margin: 0; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; gap: 12px;">
-                            <i class="<?= htmlspecialchars($c['icon_class']) ?>" style="color: var(--secondary); font-size: 1.2rem; width: 25px; text-align: center;"></i> 
+                        <p class="footer-contact-item">
+                            <i class="<?= htmlspecialchars($c['icon_class']) ?>"></i> 
                             <?php if (!empty($c['link'])): ?>
-                                <a href="<?= htmlspecialchars($c['link']) ?>" target="_blank" style="color: #ccc; text-decoration: none; transition: color 0.3s;"><?= htmlspecialchars($c['content_text']) ?></a>
+                                <a href="<?= htmlspecialchars($c['link']) ?>" target="_blank"><?= htmlspecialchars($c['content_text']) ?></a>
                             <?php else: ?>
                                 <span><?= htmlspecialchars($c['content_text']) ?></span>
                             <?php endif; ?>
