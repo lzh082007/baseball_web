@@ -29,6 +29,9 @@ foreach ($all_lineups as $l) {
     $lineupLookup[$l['game_id']][$l['player_id']][] = $l['position'];
 }
 
+// Pre-fetch all player game details to avoid redundant database calls and double filtering
+$all_player_game_details = $db->getAll('player_game_details');
+
 $msg = '';
 $msgType = 'success';
 
@@ -202,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     
                     <?php 
                     if ($playerData) {
-                        $myStats = array_filter($db->getAll('player_game_details'), function($s) use ($playerData, $in_progress_games) {
+                        $myStats = array_filter($all_player_game_details, function($s) use ($playerData, $in_progress_games) {
                             return $s['player_id'] == $playerData['Player_id'] && !in_array($s['game_id'], $in_progress_games);
                         });
                     } else {
@@ -370,7 +373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $b_babip = ($b_ab - $b_so - $b_hr + $b_sf) > 0 ? ($b_hits - $b_hr) / ($b_ab - $b_so - $b_hr + $b_sf) : 0;
 
                         // 計算聯盟平均數據以計算 OPS+
-                        $allGameStats = array_filter($db->getAll('player_game_details'), function($s) use ($in_progress_games) {
+                        $allGameStats = array_filter($all_player_game_details, function($s) use ($in_progress_games) {
                             return !in_array($s['game_id'], $in_progress_games);
                         });
                         $lg_pa = 0; $lg_ab = 0; $lg_h = 0; $lg_bb = 0; $lg_hbp = 0; $lg_sf = 0; $lg_tb = 0;

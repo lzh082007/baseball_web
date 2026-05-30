@@ -17,28 +17,28 @@ $stats = [];
 $can_view = isLoggedIn() && (isAdmin() || isPlayer());
 $live_state = null;
 
+$pdo = $db->getPdo();
+$stmt = $pdo->prepare("SELECT * FROM game_live_state WHERE game_id = ?");
+$stmt->execute([$game_id]);
+$live_state = $stmt->fetch();
+
+$is_our_offense = false;
+$is_opp_offense = false;
+if ($live_state) {
+    $batting_first = isset($game['batting_first']) ? $game['batting_first'] : '後攻';
+    if ($batting_first === '先攻') {
+        $is_our_offense = ((int)$live_state['is_top'] == 1);
+    } else {
+        $is_our_offense = ((int)$live_state['is_top'] == 0);
+    }
+    $is_opp_offense = !$is_our_offense;
+}
+
 if ($can_view) {
     $all_stats = $db->getAll('player_game_details');
     $stats = array_filter($all_stats, function($s) use ($game_id) {
         return $s['game_id'] == $game_id;
     });
-
-    $pdo = $db->getPdo();
-    $stmt = $pdo->prepare("SELECT * FROM game_live_state WHERE game_id = ?");
-    $stmt->execute([$game_id]);
-    $live_state = $stmt->fetch();
-
-    $is_our_offense = false;
-    $is_opp_offense = false;
-    if ($live_state) {
-        $batting_first = isset($game['batting_first']) ? $game['batting_first'] : '後攻';
-        if ($batting_first === '先攻') {
-            $is_our_offense = ((int)$live_state['is_top'] == 1);
-        } else {
-            $is_our_offense = ((int)$live_state['is_top'] == 0);
-        }
-        $is_opp_offense = !$is_our_offense;
-    }
 }
 
 $players = $db->getAll('player');
@@ -114,18 +114,13 @@ foreach ($stats as $s) {
 .stats-table-clean tbody tr:hover {
     background: #f1f5f9 !important;
 }
-@keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-}
 </style>
 
 <div class="page-header">
     <h1>賽事詳細資訊</h1>
     <p>日期：<?= htmlspecialchars($game['game_date']) ?> | 對手：<?= htmlspecialchars($game['opponent']) ?> | 結果：<?php
         if ($live_state && (int)($live_state['is_ended'] ?? 0) === 0 && empty($game['result'])) {
-            echo '<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; display: inline-block; animation: pulse 1.5s infinite; vertical-align: middle;"><i class="fas fa-broadcast-tower" style="margin-right: 4px;"></i>LIVE 即時直播中</span>';
+            echo '<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; display: inline-block; vertical-align: middle;"><i class="fas fa-broadcast-tower" style="margin-right: 4px;"></i>LIVE 即時直播中</span>';
         } else {
             echo htmlspecialchars($game['result'] ?: '未開始');
         }
@@ -140,35 +135,27 @@ foreach ($stats as $s) {
             </a>
         </div>
 
-        <?php if (!$can_view): ?>
-            <div style="background: #fff; padding: 60px 40px; text-align: center; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <i class="fas fa-lock" style="font-size: 3.5rem; color: #ccc; margin-bottom: 20px;"></i>
-                <h3 style="color: #333; margin-bottom: 10px;">進階數據已隱藏</h3>
-                <p style="color: #777; font-size: 1.1rem; margin-bottom: 20px;">此賽事的詳細球員攻守數據僅供管理員與球員查閱。<br>請先使用相應權限之帳號登入系統。</p>
-                <?php if (!isLoggedIn()): ?>
-                    <a href="login.php" class="btn-primary" style="display: inline-block; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 1.1rem;"><i class="fas fa-sign-in-alt"></i> 前往登入</a>
-                <?php endif; ?>
-            </div>
-        <?php else: ?>
-            <?php if ($live_state): ?>
-                <!-- ── 賽事即時計分板 ── -->
-                <div class="live-scoreboard-card" style="background: #0f172a; color: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 30px;">
-                    <h4 style="margin-top:0; border-bottom: 1px solid #1e293b; padding-bottom: 10px; color:#94a3b8; font-size:0.95rem; font-weight:700; margin-bottom: 15px;">
-                        <i class="fas fa-desktop" style="color:var(--secondary); margin-right:8px;"></i> 賽事即時狀態計分板
-                    </h4>
-                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
-                        <!-- Left: Teams and Scores (R-H-E Table Style) -->
-                        <div style="flex: 2; min-width: 320px;">
-                            <table style="width: 100%; border-collapse: collapse; text-align: center; color: white; font-family: 'Outfit', sans-serif;">
-                                <thead>
-                                    <tr style="border-bottom: 1px solid #334155; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">
-                                        <th style="text-align: left; padding: 8px 12px; font-weight: 600;">球隊</th>
-                                        <th style="padding: 8px; font-weight: 600; width: 50px;">R</th>
-                                        <th style="padding: 8px; font-weight: 600; width: 50px;">H</th>
-                                        <th style="padding: 8px; font-weight: 600; width: 50px;">E</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+        <!-- ── 賽事即時計分板 (公開區塊) ── -->
+        <?php if ($live_state): ?>
+            <div class="live-scoreboard-card" style="background: #0f172a; color: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 30px;">
+                <h4 style="margin-top:0; border-bottom: 1px solid #1e293b; padding-bottom: 10px; color:#94a3b8; font-size:0.95rem; font-weight:700; margin-bottom: 15px;">
+                    <i class="fas fa-desktop" style="color:var(--secondary); margin-right:8px;"></i> 賽事即時狀態計分板
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+                    <!-- Left: Teams and Scores (R-H-E Table Style) -->
+                    <div style="flex: 2; min-width: 320px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; color: white; font-family: 'Outfit', sans-serif;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid #334155; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">
+                                    <th style="text-align: left; padding: 8px 12px; font-weight: 600;">球隊</th>
+                                    <th style="padding: 8px; font-weight: 600; width: 50px;">R</th>
+                                    <th style="padding: 8px; font-weight: 600; width: 50px;">H</th>
+                                    <th style="padding: 8px; font-weight: 600; width: 50px;">E</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($batting_first === '先攻'): ?>
+                                    <!-- 我方先攻：我方在上面，對手在下面 -->
                                     <tr style="font-size: 1.1rem; border-bottom: 1px solid #1e293b;">
                                         <td style="text-align: left; padding: 12px; font-weight: 700; color: var(--secondary);">
                                             NUTC (我方) 
@@ -191,86 +178,163 @@ foreach ($stats as $s) {
                                         <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['opponent_hits'] ?></td>
                                         <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['opponent_errors'] ?></td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                                <?php else: ?>
+                                    <!-- 我方後攻：對手在上面，我方在下面 -->
+                                    <tr style="font-size: 1.1rem; border-bottom: 1px solid #1e293b;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: #94a3b8;">
+                                            <?= htmlspecialchars($game['opponent']) ?> (對手)
+                                            <?php if ($is_opp_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state['opponent_score'] ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['opponent_hits'] ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['opponent_errors'] ?></td>
+                                    </tr>
+                                    <tr style="font-size: 1.1rem;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: var(--secondary);">
+                                            NUTC (我方) 
+                                            <?php if ($is_our_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state['our_score'] ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['our_hits'] ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state['our_errors'] ?></td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
-                        <!-- Center: Inning Indicator & B/S/O Lights -->
-                        <div style="flex: 1.2; min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; padding: 0 15px; box-sizing: border-box;">
-                            <div style="font-size: 1.6rem; font-weight: 900; color: #f8fafc; margin-bottom: 12px; letter-spacing: 1px;">
-                                <?= $live_state['inning'] ?> 局<?= $live_state['is_top'] ? '上' : '下' ?>
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 160px;">
-                                <!-- Balls -->
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">B</span>
-                                    <div style="display: flex; gap: 6px;">
-                                        <?php for($i=1; $i<=3; $i++): 
-                                            $active = ($live_state['balls'] >= $i);
-                                            $color = $active ? '#10b981' : '#334155';
-                                            $shadow = $active ? 'box-shadow: 0 0 8px #10b981;' : '';
-                                        ?>
-                                            <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
-                                        <?php endfor; ?>
-                                    </div>
-                                </div>
-                                <!-- Strikes -->
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">S</span>
-                                    <div style="display: flex; gap: 6px;">
-                                        <?php for($i=1; $i<=2; $i++): 
-                                            $active = ($live_state['strikes'] >= $i);
-                                            $color = $active ? '#f59e0b' : '#334155';
-                                            $shadow = $active ? 'box-shadow: 0 0 8px #f59e0b;' : '';
-                                        ?>
-                                            <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
-                                        <?php endfor; ?>
-                                    </div>
-                                </div>
-                                <!-- Outs -->
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">O</span>
-                                    <div style="display: flex; gap: 6px;">
-                                        <?php for($i=1; $i<=2; $i++): 
-                                            $active = ($live_state['outs'] >= $i);
-                                            $color = $active ? '#ef4444' : '#334155';
-                                            $shadow = $active ? 'box-shadow: 0 0 8px #ef4444;' : '';
-                                        ?>
-                                            <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
-                                        <?php endfor; ?>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Center: Inning Indicator & B/S/O Lights -->
+                    <div style="flex: 1.2; min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; padding: 0 15px; box-sizing: border-box;">
+                        <div style="font-size: 1.6rem; font-weight: 900; color: #f8fafc; margin-bottom: 12px; letter-spacing: 1px;">
+                            <?= $live_state['inning'] ?> 局<?= $live_state['is_top'] ? '上' : '下' ?>
                         </div>
-
-                        <!-- Right: Diamond Base Runner Visual -->
-                        <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                            <div style="position: relative; width: 100px; height: 100px; margin-bottom: 8px;">
-                                <!-- Second Base -->
-                                <div style="position: absolute; top: 0; left: 42px; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_second'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_second'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
-                                <!-- Third Base -->
-                                <div style="position: absolute; top: 42px; left: 0; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_third'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_third'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
-                                <!-- First Base -->
-                                <div style="position: absolute; top: 42px; right: 0; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_first'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_first'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
-                                <!-- Home Plate -->
-                                <div style="position: absolute; bottom: 0; left: 44px; width: 12px; height: 12px; border: 2px solid #475569; background: #cbd5e1; transform: rotate(45deg); opacity: 0.6;"></div>
+                        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 160px;">
+                            <!-- Balls -->
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">B</span>
+                                <div style="display: flex; gap: 6px;">
+                                    <?php for($i=1; $i<=3; $i++): 
+                                        $active = ($live_state['balls'] >= $i);
+                                        $color = $active ? '#10b981' : '#334155';
+                                        $shadow = $active ? 'box-shadow: 0 0 8px #10b981;' : '';
+                                    ?>
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
+                                    <?php endfor; ?>
+                                </div>
                             </div>
-                            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">壘包狀態</div>
+                            <!-- Strikes -->
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">S</span>
+                                <div style="display: flex; gap: 6px;">
+                                    <?php for($i=1; $i<=2; $i++): 
+                                        $active = ($live_state['strikes'] >= $i);
+                                        $color = $active ? '#f59e0b' : '#334155';
+                                        $shadow = $active ? 'box-shadow: 0 0 8px #f59e0b;' : '';
+                                    ?>
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
+                            <!-- Outs -->
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; width: 20px;">O</span>
+                                <div style="display: flex; gap: 6px;">
+                                    <?php for($i=1; $i<=2; $i++): 
+                                        $active = ($live_state['outs'] >= $i);
+                                        $color = $active ? '#ef4444' : '#334155';
+                                        $shadow = $active ? 'box-shadow: 0 0 8px #ef4444;' : '';
+                                    ?>
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>; <?= $shadow ?> display: inline-block;"></span>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endif; ?>
 
+                    <!-- Right: Diamond Base Runner Visual -->
+                    <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="position: relative; width: 100px; height: 100px; margin-bottom: 8px;">
+                            <!-- Second Base -->
+                            <div style="position: absolute; top: 0; left: 42px; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_second'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_second'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
+                            <!-- Third Base -->
+                            <div style="position: absolute; top: 42px; left: 0; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_third'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_third'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
+                            <!-- First Base -->
+                            <div style="position: absolute; top: 42px; right: 0; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= $live_state['runner_first'] ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); <?= $live_state['runner_first'] ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>"></div>
+                            <!-- Home Plate -->
+                            <div style="position: absolute; bottom: 0; left: 44px; width: 12px; height: 12px; border: 2px solid #475569; background: #cbd5e1; transform: rotate(45deg); opacity: 0.6;"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">壘包狀態</div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>        <!-- Play-by-Play Log Card (公開區塊，已調整為固定高度 450px) -->
+        <?php
+        $logs_stmt = $pdo->prepare("SELECT * FROM game_live_logs WHERE game_id = ? ORDER BY id DESC");
+        $logs_stmt->execute([$game_id]);
+        $game_logs = $logs_stmt->fetchAll();
+        ?>
+        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; height: 450px; display: flex; flex-direction: column;">
+            <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0;">
+                <span><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> 本場比賽打席紀錄歷史 (Play-by-Play Timeline)</span>
+                <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">最新紀錄顯示在最上方</span>
+            </h3>
+            <div style="flex: 1; overflow-y: auto; padding-right:5px; margin-top:15px;">
+                <?php if (empty($game_logs)): ?>
+                    <div style="text-align:center; color:#94a3b8; padding:20px; font-size:0.9rem;">本場比賽暫無打席敘述紀錄。</div>
+                <?php else: ?>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <?php foreach ($game_logs as $log): ?>
+                            <div style="display:flex; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; gap:12px; transition: 0.2s;">
+                                <div style="display:flex; flex-direction:column; align-items:center; background:#1e293b; color:white; padding:6px 10px; border-radius:6px; min-width:65px; text-align:center;">
+                                    <span style="font-size:0.85rem; font-weight:800;"><?= $log['inning'] ?>局<?= $log['is_top'] ? '上' : '下' ?></span>
+                                    <span style="font-size:0.7rem; opacity:0.85; margin-top:2px;"><?= $log['outs'] ?>出局</span>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                        <span style="background:<?= $log['type'] === 'offense' ? '#3b82f6' : '#64748b' ?>; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
+                                            <?= $log['type'] === 'offense' ? '我方進攻' : '對手進攻' ?>
+                                        </span>
+                                        <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; font-family:'Outfit',sans-serif;">
+                                            <?= htmlspecialchars($log['pa_result']) ?>
+                                        </span>
+                                        <span style="font-size:0.7rem; color:#94a3b8;"><?= $log['created_at'] ?></span>
+                                    </div>
+                                    <div style="font-size:0.9rem; color:#334155; font-weight:600; line-height:1.4;">
+                                        <?= htmlspecialchars($log['description'] ?: '無打席描述') ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- ── 賽事詳細數據 (權限控制) ── -->
+        <?php if (!$can_view): ?>
+            <div style="background: #fff; padding: 60px 40px; text-align: center; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
+                <i class="fas fa-lock" style="font-size: 3.5rem; color: #ccc; margin-bottom: 20px;"></i>
+                <h3 style="color: #333; margin-bottom: 10px;">進階數據已隱藏</h3>
+                <p style="color: #777; font-size: 1.1rem; margin-bottom: 20px;">此賽事的詳細球員攻守數據僅供管理員與球員查閱。<br>請先使用相應權限之帳號登入系統。</p>
+                <?php if (!isLoggedIn()): ?>
+                    <a href="login.php" class="btn-primary" style="display: inline-block; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 1.1rem;"><i class="fas fa-sign-in-alt"></i> 前往登入</a>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
             <?php 
             $is_in_progress = ($live_state && (int)$live_state['is_ended'] == 0 && empty($game['result']));
             if ($is_in_progress): ?>
-                <div style="background: white; border-radius: 12px; padding: 40px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center;">
+                <div style="background: white; border-radius: 12px; padding: 40px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: center;">
                     <i class="fas fa-baseball-bat-ball fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
                     <h3 style="color: #1e293b; font-weight: 800; margin-bottom: 8px;">⚾ 比賽仍在進行中</h3>
                     <p style="color: #64748b; font-size: 0.95rem; margin: 0;">詳細數據將於賽事結束後更新，敬請期待！</p>
                 </div>
             <?php else: ?>
-                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;">
+                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
                     <!-- 1. 打擊成績 -->
                     <div style="margin-bottom: 35px;">
                     <h3 style="margin-bottom: 15px; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: inline-flex; align-items: center; gap: 8px;">
@@ -469,49 +533,6 @@ foreach ($stats as $s) {
             </div>
             <?php endif; ?>
         <?php endif; ?>
-
-        <!-- Play-by-Play Log Card -->
-        <?php
-        $logs_stmt = $pdo->prepare("SELECT * FROM game_live_logs WHERE game_id = ? ORDER BY id DESC");
-        $logs_stmt->execute([$game_id]);
-        $game_logs = $logs_stmt->fetchAll();
-        ?>
-        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 25px;">
-            <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <span><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> 本場比賽打席紀錄歷史 (Play-by-Play Timeline)</span>
-                <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">最新紀錄顯示在最上方</span>
-            </h3>
-            <div style="max-height: 400px; overflow-y: auto; padding-right:5px; margin-top:15px;">
-                <?php if (empty($game_logs)): ?>
-                    <div style="text-align:center; color:#94a3b8; padding:20px; font-size:0.9rem;">本場比賽暫無打席敘述紀錄。</div>
-                <?php else: ?>
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <?php foreach ($game_logs as $log): ?>
-                            <div style="display:flex; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; gap:12px; transition: 0.2s;">
-                                <div style="display:flex; flex-direction:column; align-items:center; background:#1e293b; color:white; padding:6px 10px; border-radius:6px; min-width:65px; text-align:center;">
-                                    <span style="font-size:0.85rem; font-weight:800;"><?= $log['inning'] ?>局<?= $log['is_top'] ? '上' : '下' ?></span>
-                                    <span style="font-size:0.7rem; opacity:0.85; margin-top:2px;"><?= $log['outs'] ?>出局</span>
-                                </div>
-                                <div style="flex:1;">
-                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                                        <span style="background:<?= $log['type'] === 'offense' ? '#3b82f6' : '#64748b' ?>; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
-                                            <?= $log['type'] === 'offense' ? '我方進攻' : '對手進攻' ?>
-                                        </span>
-                                        <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; font-family:'Outfit',sans-serif;">
-                                            <?= htmlspecialchars($log['pa_result']) ?>
-                                        </span>
-                                        <span style="font-size:0.7rem; color:#94a3b8;"><?= $log['created_at'] ?></span>
-                                    </div>
-                                    <div style="font-size:0.9rem; color:#334155; font-weight:600; line-height:1.4;">
-                                        <?= htmlspecialchars($log['description'] ?: '無打席描述') ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
     </div>
 </section>
 

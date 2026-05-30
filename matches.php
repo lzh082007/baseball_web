@@ -104,7 +104,7 @@ $defaultTab = !empty($todayGames) ? 'today-matches' : 'past-matches';
                                     </h3>
                                     <p class="match-card-result-lg">
                                         <?php if ($isLive): ?>
-                                            <span style="background: #2e7d32; color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; display: inline-block; animation: live-pulse 2s infinite ease-in-out;"><i class="fas fa-broadcast-tower" style="margin-right: 5px;"></i>LIVE</span>
+                                            <span style="background: #2e7d32; color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; display: inline-block;"><i class="fas fa-broadcast-tower" style="margin-right: 5px;"></i>LIVE</span>
                                         <?php elseif (!empty($g['result'])): ?>
                                             <?= htmlspecialchars($g['result']) ?>
                                         <?php else: ?>
@@ -211,7 +211,7 @@ $defaultTab = !empty($todayGames) ? 'today-matches' : 'past-matches';
                                     </h3>
                                     <p class="match-card-result-lg">
                                         <?php if ($isLive): ?>
-                                            <span style="background: #2e7d32; color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; display: inline-block; animation: live-pulse 2s infinite ease-in-out;"><i class="fas fa-broadcast-tower" style="margin-right: 5px;"></i>LIVE</span>
+                                            <span style="background: #2e7d32; color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; display: inline-block;"><i class="fas fa-broadcast-tower" style="margin-right: 5px;"></i>LIVE</span>
                                         <?php else: ?>
                                             <?= htmlspecialchars($g['result']) ?>
                                         <?php endif; ?>

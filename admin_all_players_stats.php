@@ -172,6 +172,12 @@ foreach ($finishedDetails as $s) {
 }
 $lg_era = $lg_ip_dec > 0 ? ($lg_er * 9) / $lg_ip_dec : 4.50;
 
+// Group finished details by player_id to eliminate nested O(N*M) array_filter operations
+$detailsByPlayer = [];
+foreach ($finishedDetails as $d) {
+    $detailsByPlayer[$d['player_id']][] = $d;
+}
+
 // Aggregate player stats
 $playerBatting = [];
 $playerPitching = [];
@@ -179,10 +185,8 @@ $playerPitching = [];
 foreach ($players as $p) {
     $pId = $p['Player_id'];
     
-    // Filter details for this player
-    $pDetails = array_filter($finishedDetails, function($d) use ($pId) {
-        return $d['player_id'] == $pId;
-    });
+    // Filter details for this player (O(1) lookup replacing nested array_filter)
+    $pDetails = $detailsByPlayer[$pId] ?? [];
     
     // --- Batting calculations ---
     $b_games = 0;
@@ -783,9 +787,8 @@ foreach ($players as $p) {
                     <?php foreach ($players as $p): ?>
                     <?php
                     $pId = $p['Player_id'];
-                    $pDetails = array_filter($allDetails, function($d) use ($pId, $in_progress_games) {
-                        return $d['player_id'] == $pId && !in_array($d['game_id'], $in_progress_games);
-                    });
+                    // O(1) lookup replacing redundant database-filtering array_filter
+                    $pDetails = $detailsByPlayer[$pId] ?? [];
                     
                     $hasBattingRecord = false;
                     $hasPitchingRecord = false;

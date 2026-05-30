@@ -1876,28 +1876,55 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="font-size: 1.1rem; border-bottom: 1px solid #1e293b;">
-                                    <td style="text-align: left; padding: 12px; font-weight: 700; color: var(--secondary);">
-                                        NUTC (我方) 
-                                        <?php if ($is_our_offense): ?>
-                                            <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['our_score'] : 0 ?></td>
-                                    <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_hits'] : 0 ?></td>
-                                    <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_errors'] : 0 ?></td>
-                                </tr>
-                                <tr style="font-size: 1.1rem;">
-                                    <td style="text-align: left; padding: 12px; font-weight: 700; color: #94a3b8;">
-                                        <?= htmlspecialchars($game['opponent']) ?> (對手)
-                                        <?php if ($is_opp_offense): ?>
-                                            <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['opponent_score'] : 0 ?></td>
-                                    <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_hits'] : 0 ?></td>
-                                    <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_errors'] : 0 ?></td>
-                                </tr>
+                                <?php if ($batting_first === '先攻'): ?>
+                                    <!-- 我方先攻：我方在上面，對手在下面 -->
+                                    <tr style="font-size: 1.1rem; border-bottom: 1px solid #1e293b;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: var(--secondary);">
+                                            NUTC (我方) 
+                                            <?php if ($is_our_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['our_score'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_hits'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_errors'] : 0 ?></td>
+                                    </tr>
+                                    <tr style="font-size: 1.1rem;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: #94a3b8;">
+                                            <?= htmlspecialchars($game['opponent']) ?> (對手)
+                                            <?php if ($is_opp_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['opponent_score'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_hits'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_errors'] : 0 ?></td>
+                                    </tr>
+                                <?php else: ?>
+                                    <!-- 我方後攻：對手在上面，我方在下面 -->
+                                    <tr style="font-size: 1.1rem; border-bottom: 1px solid #1e293b;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: #94a3b8;">
+                                            <?= htmlspecialchars($game['opponent']) ?> (對手)
+                                            <?php if ($is_opp_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['opponent_score'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_hits'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['opponent_errors'] : 0 ?></td>
+                                    </tr>
+                                    <tr style="font-size: 1.1rem;">
+                                        <td style="text-align: left; padding: 12px; font-weight: 700; color: var(--secondary);">
+                                            NUTC (我方) 
+                                            <?php if ($is_our_offense): ?>
+                                                <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 6px;" title="進攻中"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-size: 1.5rem; font-weight: 900; color: white; padding: 8px;"><?= $live_state ? $live_state['our_score'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_hits'] : 0 ?></td>
+                                        <td style="font-weight: 700; color: #cbd5e1; padding: 8px;"><?= $live_state ? $live_state['our_errors'] : 0 ?></td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
