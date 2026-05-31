@@ -198,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <?php elseif ($tab === 'my_stats'): ?>
                 <!-- ── 我的詳細數據 ── -->
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 4px 15px rgba(0,0,0,0.06); border:1px solid #eee;">
                     <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--primary); padding-bottom:10px;">
                         <i class="fas fa-chart-bar" style="margin-right:8px; color:var(--primary);"></i>我的比賽詳細數據
@@ -372,14 +373,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $b_bb_k = $b_so > 0 ? $b_bb / $b_so : $b_bb;
                         $b_babip = ($b_ab - $b_so - $b_hr + $b_sf) > 0 ? ($b_hits - $b_hr) / ($b_ab - $b_so - $b_hr + $b_sf) : 0;
 
-                        // 計算聯盟平均數據以計算 OPS+
+                        // 計算聯盟平均數據以計算 OPS+ 及打擊雷達圖
                         $allGameStats = array_filter($all_player_game_details, function($s) use ($in_progress_games) {
                             return !in_array($s['game_id'], $in_progress_games);
                         });
-                        $lg_pa = 0; $lg_ab = 0; $lg_h = 0; $lg_bb = 0; $lg_hbp = 0; $lg_sf = 0; $lg_tb = 0;
+                        $lg_pa = 0; $lg_ab = 0; $lg_h = 0; $lg_bb = 0; $lg_hbp = 0; $lg_sf = 0; $lg_tb = 0; $lg_so = 0;
                         foreach ($allGameStats as $s) {
                             $s_pa = (int)($s['pa_count'] ?? 0);
-                            $s_1b = 0; $s_2b = 0; $s_3b = 0; $s_hr = 0; $s_bb = 0; $s_hbp = 0; $s_sf = 0; $s_sac = 0;
+                            $s_1b = 0; $s_2b = 0; $s_3b = 0; $s_hr = 0; $s_bb = 0; $s_hbp = 0; $s_sf = 0; $s_sac = 0; $s_so = 0;
                             if (!empty($s['pa_results'])) {
                                 $results = array_map('trim', explode(',', $s['pa_results']));
                                 $has_hbp = 0; $has_sf = 0; $has_sac = 0;
@@ -389,6 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     elseif ($res === '2B' || $res === '二安') $s_2b++;
                                     elseif ($res === '3B' || $res === '三安') $s_3b++;
                                     elseif ($res === 'HR' || $res === '全壘打') $s_hr++;
+                                    elseif ($res === 'K' || $res === 'SO' || $res === '三振') $s_so++;
                                     elseif ($res === 'BB' || $res === '保送' || $res === '四壞') $s_bb++;
                                     elseif ($res === 'HBP' || $res === '觸身') { $s_hbp++; $has_hbp = 1; }
                                     elseif ($res === 'SF' || $res === '高飛犧牲打') { $s_sf++; $has_sf = 1; }
@@ -413,11 +415,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $lg_hbp += $s_hbp;
                             $lg_sf += $s_sf;
                             $lg_tb += $s_tb;
+                            $lg_so += $s_so;
                         }
                         $lg_obp = ($lg_ab + $lg_bb + $lg_hbp + $lg_sf) > 0 ? ($lg_h + $lg_bb + $lg_hbp) / ($lg_ab + $lg_bb + $lg_hbp + $lg_sf) : 0.320;
                         $lg_slg = $lg_ab > 0 ? $lg_tb / $lg_ab : 0.400;
                         $lg_ops = $lg_obp + $lg_slg;
                         if ($lg_ops == 0) $lg_ops = 0.720;
+                        $lg_avg = $lg_ab > 0 ? $lg_h / $lg_ab : 0.250;
+                        $lg_bb_rate = $lg_pa > 0 ? $lg_bb / $lg_pa : 0.080;
+                        $lg_k_rate = $lg_pa > 0 ? $lg_so / $lg_pa : 0.180;
 
                         if ($lg_obp > 0 && $lg_slg > 0 && $b_obp > 0 && $b_slg > 0) {
                             $b_ops_plus = 100 * ($b_obp / $lg_obp + $b_slg / $lg_slg - 1);
@@ -523,17 +529,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                         $p_fip = $p_ip_dec > 0 ? (13 * $p_hr_allowed + 3 * ($p_walks + $p_hit_by_pitch) - 2 * $p_strikeouts) / $p_ip_dec + 3.20 : 0;
 
-                        // 投手聯盟 ERA 與 ERA+
+                        // 投手聯盟 ERA 與 ERA+ 及投球雷達圖所需平均指標
                         $lg_er = 0; $lg_ip_dec = 0;
+                        $lg_p_walks = 0; $lg_p_hits = 0; $lg_p_so = 0;
+                        $lg_p_pitches = 0; $lg_p_strikes = 0; $lg_p_swings = 0; $lg_p_whiffs = 0;
+                        $lg_p_bf = 0;
                         foreach ($allGameStats as $s) {
-                            $lg_er += (int)($s['earned_runs'] ?? 0);
-                            if (!empty($s['innings'])) {
-                                $lg_ip_dec += inningsToDecimal($s['innings']);
+                            $has_pitched = ((int)($s['pitches'] ?? 0) > 0 || (!empty($s['innings']) && $s['innings'] !== '0'));
+                            if ($has_pitched) {
+                                $lg_er += (int)($s['earned_runs'] ?? 0);
+                                if (!empty($s['innings'])) {
+                                    $lg_ip_dec += inningsToDecimal($s['innings']);
+                                }
+                                $lg_p_walks += (int)($s['walks'] ?? 0);
+                                $lg_p_hits += (int)($s['hits_allowed'] ?? 0);
+                                $lg_p_so += (int)($s['strikeouts'] ?? 0);
+                                $lg_p_pitches += (int)($s['pitches'] ?? 0);
+                                $lg_p_strikes += (int)($s['strikes'] ?? 0);
+                                $lg_p_swings += (int)($s['swings'] ?? 0);
+                                $lg_p_whiffs += (int)($s['whiffs'] ?? 0);
+                                $lg_p_bf += (int)($s['batters_faced'] ?? 0);
                             }
                         }
                         $lg_era = $lg_ip_dec > 0 ? ($lg_er * 9) / $lg_ip_dec : 4.50;
                         $p_era_plus = $p_era > 0 ? ($lg_era / $p_era) * 100 : 100;
                         $p_era_plus = max(0, round($p_era_plus));
+
+                        $lg_whip = $lg_ip_dec > 0 ? ($lg_p_walks + $lg_p_hits) / $lg_ip_dec : 1.40;
+                        $lg_k9 = $lg_ip_dec > 0 ? ($lg_p_so * 9) / $lg_ip_dec : 7.0;
+                        $lg_bb9 = $lg_ip_dec > 0 ? ($lg_p_walks * 9) / $lg_ip_dec : 4.0;
+                        $lg_whiff_rate = $lg_p_swings > 0 ? $lg_p_whiffs / $lg_p_swings : 0.20;
 
                         // 投球特性比率
                         $p_strike_rate = $p_pitches > 0 ? $p_strikes / $p_pitches : 0;
@@ -594,6 +619,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                         <!-- ── 打者數據區 ── -->
                         <div id="stats-section-batter" class="stats-section" style="display:block;">
+                            <!-- 打者表現雷達圖分析卡片 -->
+                            <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:24px; border:1px solid #e2e8f0; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                                <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-chart-pie" style="color: var(--primary);"></i> 個人與團隊打擊表現對比分析
+                                </h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center;">
+                                    <!-- 雷達圖 Canvas 容器 -->
+                                    <div style="flex: 1; min-width: 280px; max-width: 380px; height: 320px; position: relative;">
+                                        <canvas id="batterRadarCanvas"></canvas>
+                                    </div>
+                                    <!-- 文字分析面板 -->
+                                    <div style="flex: 1.2; min-width: 300px; display: flex; flex-direction: column; gap: 15px;">
+                                        <div style="background: #fafbfd; padding: 16px; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                                            <div style="font-size: 0.95rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;"><i class="fas fa-arrow-up" style="color:var(--primary); margin-right:5px;"></i>優勢分析 (Strengths)</div>
+                                            <div id="batter-strengths-text" style="font-size: 0.88rem; color: #475569; line-height: 1.5;">正在分析打擊數據...</div>
+                                        </div>
+                                        <div style="background: #fafbfd; padding: 16px; border-radius: 8px; border-left: 4px solid #f59e0b; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                                            <div style="font-size: 0.95rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;"><i class="fas fa-chart-line" style="color:#f59e0b; margin-right:5px;"></i>建議提升 (Areas for Improvement)</div>
+                                            <div id="batter-improvements-text" style="font-size: 0.88rem; color: #475569; line-height: 1.5;">正在分析打擊數據...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- 打者生涯總數據 -->
                             <div style="margin-bottom:30px;">
                                 <h4 style="margin: 0 0 15px 0; color:#000; font-size:1.1rem; display:flex; align-items:center; gap:8px; font-weight:bold;">
@@ -740,6 +789,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                         <!-- ── 投手數據區 ── -->
                         <div id="stats-section-pitcher" class="stats-section" style="display:none;">
+                            <?php if ($p_games > 0): ?>
+                            <!-- 投手表現雷達圖分析卡片 -->
+                            <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:24px; border:1px solid #e2e8f0; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                                <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-chart-pie" style="color: var(--primary);"></i> 個人與團隊投球表現對比分析
+                                </h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center;">
+                                    <!-- 雷達圖 Canvas 容器 -->
+                                    <div style="flex: 1; min-width: 280px; max-width: 380px; height: 320px; position: relative;">
+                                        <canvas id="pitcherRadarCanvas"></canvas>
+                                    </div>
+                                    <!-- 文字分析面板 -->
+                                    <div style="flex: 1.2; min-width: 300px; display: flex; flex-direction: column; gap: 15px;">
+                                        <div style="background: #fafbfd; padding: 16px; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                                            <div style="font-size: 0.95rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;"><i class="fas fa-arrow-up" style="color:var(--primary); margin-right:5px;"></i>優勢分析 (Strengths)</div>
+                                            <div id="pitcher-strengths-text" style="font-size: 0.88rem; color: #475569; line-height: 1.5;">正在分析投球數據...</div>
+                                        </div>
+                                        <div style="background: #fafbfd; padding: 16px; border-radius: 8px; border-left: 4px solid #f59e0b; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                                            <div style="font-size: 0.95rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;"><i class="fas fa-chart-line" style="color:#f59e0b; margin-right:5px;"></i>建議提升 (Areas for Improvement)</div>
+                                            <div id="pitcher-improvements-text" style="font-size: 0.88rem; color: #475569; line-height: 1.5;">正在分析投球數據...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php else: ?>
+                            <div style="padding:20px; background:#fafbfd; border-radius:12px; text-align:center; color:#64748b; margin-bottom:30px; border:1px dashed #cbd5e1;">
+                                <i class="fas fa-baseball-ball" style="font-size:2rem; color:#cbd5e1; margin-bottom:10px;"></i>
+                                <p style="margin:0; font-size:0.95rem; font-weight:600;">您目前尚無投球數據記錄，無法生成投球表現雷達圖。</p>
+                            </div>
+                            <?php endif; ?>
+
                             <!-- 投手生涯總數據 -->
                             <div style="margin-bottom:30px;">
                                 <h4 style="margin: 0 0 15px 0; color:#000; font-size:1.1rem; display:flex; align-items:center; gap:8px; font-weight:bold;">
@@ -939,6 +1019,355 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         </div>
 
                         <script>
+                        // 輸出個人與團隊平均數據供 Chart.js 繪製雷達圖
+                        const hasPlayerData = <?= $playerData ? 'true' : 'false' ?>;
+                        const statsData = {
+                            batter: {
+                                player: {
+                                    avg: <?= (float)round($b_avg, 3) ?>,
+                                    obp: <?= (float)round($b_obp, 3) ?>,
+                                    slg: <?= (float)round($b_slg, 3) ?>,
+                                    bbRate: <?= (float)round($b_bb_rate, 4) ?>,
+                                    kRate: <?= (float)round($b_k_rate, 4) ?>,
+                                    // 評分轉換 (0-100)
+                                    avgScore: <?= (float)round(min(100, ($b_avg / 0.400) * 100), 1) ?>,
+                                    obpScore: <?= (float)round(min(100, ($b_obp / 0.500) * 100), 1) ?>,
+                                    slgScore: <?= (float)round(min(100, ($b_slg / 0.700) * 100), 1) ?>,
+                                    bbScore:  <?= (float)round(min(100, ($b_bb_rate / 0.20) * 100), 1) ?>,
+                                    contactScore: <?= (float)round((1.0 - $b_k_rate) * 100, 1) ?>
+                                },
+                                team: {
+                                    avg: <?= (float)round($lg_avg, 3) ?>,
+                                    obp: <?= (float)round($lg_obp, 3) ?>,
+                                    slg: <?= (float)round($lg_slg, 3) ?>,
+                                    bbRate: <?= (float)round($lg_bb_rate, 4) ?>,
+                                    kRate: <?= (float)round($lg_k_rate, 4) ?>,
+                                    // 評分轉換 (0-100)
+                                    avgScore: <?= (float)round(min(100, ($lg_avg / 0.400) * 100), 1) ?>,
+                                    obpScore: <?= (float)round(min(100, ($lg_obp / 0.500) * 100), 1) ?>,
+                                    slgScore: <?= (float)round(min(100, ($lg_slg / 0.700) * 100), 1) ?>,
+                                    bbScore:  <?= (float)round(min(100, ($lg_bb_rate / 0.20) * 100), 1) ?>,
+                                    contactScore: <?= (float)round((1.0 - $lg_k_rate) * 100, 1) ?>
+                                }
+                            },
+                            pitcher: {
+                                player: {
+                                    era: <?= (float)round($p_era, 2) ?>,
+                                    whip: <?= (float)round($p_whip, 2) ?>,
+                                    k9: <?= (float)round($p_k9, 2) ?>,
+                                    bb9: <?= (float)round($p_ip_dec > 0 ? ($p_walks * 9) / $p_ip_dec : 0, 2) ?>,
+                                    whiffRate: <?= (float)round($p_whiff_rate, 4) ?>,
+                                    // 評分轉換 (0-100)
+                                    eraScore: <?= (float)round(min(100, max(0, (9.0 - $p_era) / 9.0 * 100)), 1) ?>,
+                                    whipScore: <?= (float)round(min(100, max(0, (2.5 - $p_whip) / 2.0 * 100)), 1) ?>,
+                                    k9Score: <?= (float)round(min(100, ($p_k9 / 15.0) * 100), 1) ?>,
+                                    bb9Score: <?= (float)round(min(100, max(0, (6.0 - ($p_ip_dec > 0 ? ($p_walks * 9) / $p_ip_dec : 0)) / 6.0 * 100)), 1) ?>,
+                                    whiffScore: <?= (float)round(min(100, ($p_whiff_rate / 0.40) * 100), 1) ?>
+                                },
+                                team: {
+                                    era: <?= (float)round($lg_era, 2) ?>,
+                                    whip: <?= (float)round($lg_whip, 2) ?>,
+                                    k9: <?= (float)round($lg_k9, 2) ?>,
+                                    bb9: <?= (float)round($lg_bb9, 2) ?>,
+                                    whiffRate: <?= (float)round($lg_whiff_rate, 4) ?>,
+                                    // 評分轉換 (0-100)
+                                    eraScore: <?= (float)round(min(100, max(0, (9.0 - $lg_era) / 9.0 * 100)), 1) ?>,
+                                    whipScore: <?= (float)round(min(100, max(0, (2.5 - $lg_whip) / 2.0 * 100)), 1) ?>,
+                                    k9Score: <?= (float)round(min(100, ($lg_k9 / 15.0) * 100), 1) ?>,
+                                    bb9Score: <?= (float)round(min(100, max(0, (6.0 - $lg_bb9) / 6.0 * 100)), 1) ?>,
+                                    whiffScore: <?= (float)round(min(100, ($lg_whiff_rate / 0.40) * 100), 1) ?>
+                                }
+                            }
+                        };
+
+                        let batterRadarChartInstance = null;
+                        let pitcherRadarChartInstance = null;
+
+                        // 渲染打擊雷達圖
+                        function renderBatterRadar() {
+                            const canvasEl = document.getElementById('batterRadarCanvas');
+                            if (!canvasEl) return;
+                            const ctx = canvasEl.getContext('2d');
+                            if (batterRadarChartInstance) {
+                                batterRadarChartInstance.destroy();
+                            }
+                            
+                            const p = statsData.batter.player;
+                            const t = statsData.batter.team;
+                            
+                            batterRadarChartInstance = new Chart(ctx, {
+                                type: 'radar',
+                                data: {
+                                    labels: ['接觸率 (避免K)', '選球力 (BB%)', '擊球率 (AVG)', '上壘率 (OBP)', '長打力 (SLG)'],
+                                    datasets: [
+                                        {
+                                            label: '個人表現',
+                                            data: [p.contactScore, p.bbScore, p.avgScore, p.obpScore, p.slgScore],
+                                            backgroundColor: 'rgba(239, 68, 68, 0.2)', // Crimson Red
+                                            borderColor: '#ef4444',
+                                            borderWidth: 2,
+                                            pointBackgroundColor: '#ef4444',
+                                            pointBorderColor: '#fff',
+                                            pointHoverBackgroundColor: '#fff',
+                                            pointHoverBorderColor: '#ef4444'
+                                        },
+                                        {
+                                            label: '團隊平均',
+                                            data: [t.contactScore, t.bbScore, t.avgScore, t.obpScore, t.slgScore],
+                                            backgroundColor: 'rgba(100, 116, 139, 0.15)', // Slate grey
+                                            borderColor: '#64748b',
+                                            borderWidth: 1.5,
+                                            borderDash: [5, 5],
+                                            pointBackgroundColor: '#64748b',
+                                            pointBorderColor: '#fff',
+                                            pointHoverBackgroundColor: '#fff',
+                                            pointHoverBorderColor: '#64748b'
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        r: {
+                                            angleLines: {
+                                                color: '#e2e8f0'
+                                            },
+                                            grid: {
+                                                color: '#e2e8f0'
+                                            },
+                                            suggestedMin: 0,
+                                            suggestedMax: 100,
+                                            ticks: {
+                                                stepSize: 20,
+                                                display: false
+                                            },
+                                            pointLabels: {
+                                                font: {
+                                                    family: "'Noto Sans TC', 'Outfit', sans-serif",
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                },
+                                                color: '#334155'
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                            labels: {
+                                                font: {
+                                                    family: "'Noto Sans TC', sans-serif",
+                                                    size: 11
+                                                },
+                                                color: '#334155'
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const datasetLabel = context.dataset.label;
+                                                    const index = context.dataIndex;
+                                                    const score = context.raw;
+                                                    
+                                                    let rawVal = '';
+                                                    const dataObj = datasetLabel === '個人表現' ? p : t;
+                                                    if (index === 0) rawVal = ((1 - dataObj.kRate)*100).toFixed(1) + '% (避免被K)';
+                                                    else if (index === 1) rawVal = (dataObj.bbRate * 100).toFixed(1) + '%';
+                                                    else if (index === 2) rawVal = dataObj.avg.toFixed(3);
+                                                    else if (index === 3) rawVal = dataObj.obp.toFixed(3);
+                                                    else if (index === 4) rawVal = dataObj.slg.toFixed(3);
+                                                    
+                                                    return `${datasetLabel} - 評分: ${score.toFixed(0)} (原始值: ${rawVal})`;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // 渲染投球雷達圖
+                        function renderPitcherRadar() {
+                            const canvasEl = document.getElementById('pitcherRadarCanvas');
+                            if (!canvasEl) return;
+                            const ctx = canvasEl.getContext('2d');
+                            if (pitcherRadarChartInstance) {
+                                pitcherRadarChartInstance.destroy();
+                            }
+                            
+                            const p = statsData.pitcher.player;
+                            const t = statsData.pitcher.team;
+                            
+                            pitcherRadarChartInstance = new Chart(ctx, {
+                                type: 'radar',
+                                data: {
+                                    labels: ['防禦率 (ERA)', '上壘壓制 (WHIP)', '三振力 (K/9)', '控球力 (BB/9)', '揮空誘使 (Whiff%)'],
+                                    datasets: [
+                                        {
+                                            label: '個人表現',
+                                            data: [p.eraScore, p.whipScore, p.k9Score, p.bb9Score, p.whiffScore],
+                                            backgroundColor: 'rgba(239, 68, 68, 0.2)', // Crimson Red
+                                            borderColor: '#ef4444',
+                                            borderWidth: 2,
+                                            pointBackgroundColor: '#ef4444',
+                                            pointBorderColor: '#fff',
+                                            pointHoverBackgroundColor: '#fff',
+                                            pointHoverBorderColor: '#ef4444'
+                                        },
+                                        {
+                                            label: '團隊平均',
+                                            data: [t.eraScore, t.whipScore, t.k9Score, t.bb9Score, t.whiffScore],
+                                            backgroundColor: 'rgba(100, 116, 139, 0.15)', // Slate grey
+                                            borderColor: '#64748b',
+                                            borderWidth: 1.5,
+                                            borderDash: [5, 5],
+                                            pointBackgroundColor: '#64748b',
+                                            pointBorderColor: '#fff',
+                                            pointHoverBackgroundColor: '#fff',
+                                            pointHoverBorderColor: '#64748b'
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        r: {
+                                            angleLines: {
+                                                color: '#e2e8f0'
+                                            },
+                                            grid: {
+                                                color: '#e2e8f0'
+                                            },
+                                            suggestedMin: 0,
+                                            suggestedMax: 100,
+                                            ticks: {
+                                                stepSize: 20,
+                                                display: false
+                                            },
+                                            pointLabels: {
+                                                font: {
+                                                    family: "'Noto Sans TC', 'Outfit', sans-serif",
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                },
+                                                color: '#334155'
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                            labels: {
+                                                font: {
+                                                    family: "'Noto Sans TC', sans-serif",
+                                                    size: 11
+                                                },
+                                                color: '#334155'
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const datasetLabel = context.dataset.label;
+                                                    const index = context.dataIndex;
+                                                    const score = context.raw;
+                                                    
+                                                    let rawVal = '';
+                                                    const dataObj = datasetLabel === '個人表現' ? p : t;
+                                                    if (index === 0) rawVal = dataObj.era.toFixed(2);
+                                                    else if (index === 1) rawVal = dataObj.whip.toFixed(2);
+                                                    else if (index === 2) rawVal = dataObj.k9.toFixed(2);
+                                                    else if (index === 3) rawVal = dataObj.bb9.toFixed(2);
+                                                    else if (index === 4) rawVal = (dataObj.whiffRate * 100).toFixed(1) + '%';
+                                                    
+                                                    return `${datasetLabel} - 評分: ${score.toFixed(0)} (原始值: ${rawVal})`;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // 生成打擊表現分析文字
+                        function generateBatterAnalysis() {
+                            const p = statsData.batter.player;
+                            const t = statsData.batter.team;
+                            const descDivStrengths = document.getElementById('batter-strengths-text');
+                            const descDivImprovements = document.getElementById('batter-improvements-text');
+                            if (!descDivStrengths || !descDivImprovements) return;
+                            
+                            const diffs = [
+                                { name: '打擊率 (AVG)', diff: p.avgScore - t.avgScore, val: p.avg, tVal: t.avg, desc: `個人打擊率 ${p.avg.toFixed(3)} (團隊 ${t.avg.toFixed(3)})` },
+                                { name: '上壘率 (OBP)', diff: p.obpScore - t.obpScore, val: p.obp, tVal: t.obp, desc: `個人上壘率 ${p.obp.toFixed(3)} (團隊 ${t.obp.toFixed(3)})` },
+                                { name: '長打率 (SLG)', diff: p.slgScore - t.slgScore, val: p.slg, tVal: t.slg, desc: `個人長打率 ${p.slg.toFixed(3)} (團隊 ${t.slg.toFixed(3)})` },
+                                { name: '保送率 (BB%)', diff: p.bbScore - t.bbScore, val: p.bbRate * 100, tVal: t.bbRate * 100, desc: `個人保送率 ${(p.bbRate*100).toFixed(1)}% (團隊 ${(t.bbRate*100).toFixed(1)}%)` },
+                                { name: '接觸率 (Contact)', diff: p.contactScore - t.contactScore, val: (1 - p.kRate) * 100, tVal: (1 - t.kRate) * 100, desc: `個人三振率 ${(p.kRate*100).toFixed(1)}% (團隊 ${(t.kRate*100).toFixed(1)}%)` }
+                            ];
+                            
+                            const sorted = [...diffs].sort((a, b) => b.diff - a.diff);
+                            const best = sorted[0];
+                            const worst = sorted[sorted.length - 1];
+                            
+                            let strengths = '';
+                            if (best.diff > 0) {
+                                strengths = `您的主要優勢在於 **${best.name}**。${best.desc}，評分高出團隊平均 **${best.diff.toFixed(1)}** 分。這顯示您在該項目擁有較佳的競爭力，請繼續保持穩定的發揮！`;
+                            } else {
+                                strengths = `您的各項打擊指標目前與團隊平均相當。其中表現較佳的是 **${best.name}** (${best.desc})。建議持續加強打擊敏銳度以求突破。`;
+                            }
+                            
+                            let improvements = '';
+                            if (worst.diff < 0) {
+                                improvements = `數據顯示您在 **${worst.name}** 項目仍有提升空間。${worst.desc}，評分低於團隊平均 **${Math.abs(worst.diff).toFixed(1)}** 分。建議可以針對這項指標做適度補強，例如提高擊球選球紀律，或調整擊球仰角以釋放長打潛力。`;
+                            } else {
+                                improvements = `太棒了！您的所有主要打擊指標均高於團隊平均水準。相對有進步空間的是 **${worst.name}** (${worst.desc})。可以針對此項目進行微調，讓您的進攻火力更全面、更具威脅！`;
+                            }
+                            
+                            descDivStrengths.innerHTML = strengths;
+                            descDivImprovements.innerHTML = improvements;
+                        }
+
+                        // 生成投球表現分析文字
+                        function generatePitcherAnalysis() {
+                            const p = statsData.pitcher.player;
+                            const t = statsData.pitcher.team;
+                            const descDivStrengths = document.getElementById('pitcher-strengths-text');
+                            const descDivImprovements = document.getElementById('pitcher-improvements-text');
+                            if (!descDivStrengths || !descDivImprovements) return;
+                            
+                            const diffs = [
+                                { name: '防禦率 (ERA)', diff: p.eraScore - t.eraScore, val: p.era, tVal: t.era, desc: `個人防禦率 ${p.era.toFixed(2)} (團隊 ${t.era.toFixed(2)})` },
+                                { name: '被上壘率 (WHIP)', diff: p.whipScore - t.whipScore, val: p.whip, tVal: t.whip, desc: `個人 WHIP ${p.whip.toFixed(2)} (團隊 ${t.whip.toFixed(2)})` },
+                                { name: '三振率 (K/9)', diff: p.k9Score - t.k9Score, val: p.k9, tVal: t.k9, desc: `個人 K/9 值 ${p.k9.toFixed(2)} (團隊 ${t.k9.toFixed(2)})` },
+                                { name: '控球力 (BB/9)', diff: p.bb9Score - t.bb9Score, val: p.bb9, tVal: t.bb9, desc: `個人 BB/9 值 ${p.bb9.toFixed(2)} (團隊 ${t.bb9.toFixed(2)})` },
+                                { name: '揮空誘使 (Whiff%)', diff: p.whiffScore - t.whiffScore, val: p.whiffRate * 100, tVal: t.whiffRate * 100, desc: `個人揮空率 ${(p.whiffRate*100).toFixed(1)}% (團隊 ${(t.whiffRate*100).toFixed(1)}%)` }
+                            ];
+                            
+                            const sorted = [...diffs].sort((a, b) => b.diff - a.diff);
+                            const best = sorted[0];
+                            const worst = sorted[sorted.length - 1];
+                            
+                            let strengths = '';
+                            if (best.diff > 0) {
+                                strengths = `您的主要投球優勢在於 **${best.name}**。${best.desc}，評分高出團隊平均 **${best.diff.toFixed(1)}** 分。這項指標顯示您在該環節具有優秀的壓制力，是投手丘上的重要武器！`;
+                            } else {
+                                strengths = `您的各項投球數據與團隊平均大致持平。表現相對最好的是 **${best.name}** (${best.desc})。建議多與教練團討論投球機制以尋求突破。`;
+                            }
+                            
+                            let improvements = '';
+                            if (worst.diff < 0) {
+                                improvements = `數據顯示您的 **${worst.name}** 指標有待改進。${worst.desc}，評分低於團隊平均 **${Math.abs(worst.diff).toFixed(1)}** 分。建議針對這項指標進行加強，例如調整配球策略、改善放球點穩定度或加強控球特訓。`;
+                            } else {
+                                improvements = `恭喜您！您的所有關鍵投球指標均高於團隊平均水準。相對有改進空間的是 **${worst.name}** (${worst.desc})。持續微調此項細節，將使您的投球壓制力更加無懈可擊！`;
+                            }
+                            
+                            descDivStrengths.innerHTML = strengths;
+                            descDivImprovements.innerHTML = improvements;
+                        }
+
+                        // 切換打者與投手數據顯示
                         function switchStats(type) {
                             document.querySelectorAll('.stats-section').forEach(el => el.style.display = 'none');
                             document.querySelectorAll('.stats-toggle-btn').forEach(btn => {
@@ -950,7 +1379,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             const activeBtn = document.getElementById('btn-stats-' + type);
                             activeBtn.style.background = 'var(--primary)';
                             activeBtn.style.color = 'white';
+                            
+                            // 延遲重繪 Chart，確保 Canvas 已顯示且寬度計算正確
+                            if (type === 'batter') {
+                                renderBatterRadar();
+                            } else if (type === 'pitcher') {
+                                renderPitcherRadar();
+                            }
                         }
+
+                        // 頁面初始化
+                        document.addEventListener('DOMContentLoaded', () => {
+                            if (hasPlayerData) {
+                                generateBatterAnalysis();
+                                generatePitcherAnalysis();
+                                renderBatterRadar();
+                            }
+                        });
                         </script>
                     <?php endif; ?>
                 </div>
