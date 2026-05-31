@@ -861,6 +861,33 @@ foreach ($players as $p) {
 
                 </div>
 
+                <!-- ── 團隊整體數據雷達圖分析 ── -->
+                <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:28px; border:1px solid #eee; margin-top:30px; box-shadow:0 4px 15px rgba(0,0,0,0.06);">
+                    <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--primary); padding-bottom:10px;">
+                        <i class="fas fa-chart-line" style="margin-right:8px; color:var(--primary);"></i>團隊整體數據雷達圖分析
+                    </h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: center; justify-content: center;">
+                        <!-- 團隊打擊雷達圖 -->
+                        <div style="flex: 1; min-width: 280px; max-width: 450px; text-align: center;">
+                            <h4 style="margin: 0 0 15px 0; color: #1e293b; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <i class="fas fa-baseball-ball" style="color: var(--primary);"></i>全隊打擊整體指標
+                            </h4>
+                            <div style="height: 320px; position: relative;">
+                                <canvas id="teamBatterRadarCanvas"></canvas>
+                            </div>
+                        </div>
+                        <!-- 團隊投球雷達圖 -->
+                        <div style="flex: 1; min-width: 280px; max-width: 450px; text-align: center;">
+                            <h4 style="margin: 0 0 15px 0; color: #1e293b; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <i class="fas fa-baseball-ball" style="color: var(--secondary);"></i>全隊投球整體指標
+                            </h4>
+                            <div style="height: 320px; position: relative;">
+                                <canvas id="teamPitcherRadarCanvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── 單一球員單場明細數據區 ── -->
                 <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 4px 15px rgba(0,0,0,0.06); border:1px solid #eee; margin-top:30px;">
                     <h3 style="margin-bottom:20px; color:#333; border-bottom:2px solid var(--secondary); padding-bottom:10px;">
@@ -1170,10 +1197,10 @@ foreach ($players as $p) {
                             maintainAspectRatio: false,
                             layout: {
                                 padding: {
-                                    top: 15,
-                                    bottom: 15,
-                                    left: 20,
-                                    right: 20
+                                    top: 25,
+                                    bottom: 25,
+                                    left: 45,
+                                    right: 45
                                 }
                             },
                             scales: {
@@ -1190,7 +1217,7 @@ foreach ($players as $p) {
                                             weight: 'bold'
                                         },
                                         color: '#334155',
-                                        padding: 12
+                                        padding: 10
                                     }
                                 }
                             },
@@ -1263,10 +1290,10 @@ foreach ($players as $p) {
                             maintainAspectRatio: false,
                             layout: {
                                 padding: {
-                                    top: 15,
-                                    bottom: 15,
-                                    left: 20,
-                                    right: 20
+                                    top: 25,
+                                    bottom: 25,
+                                    left: 45,
+                                    right: 45
                                 }
                             },
                             scales: {
@@ -1283,7 +1310,7 @@ foreach ($players as $p) {
                                             weight: 'bold'
                                         },
                                         color: '#334155',
-                                        padding: 12
+                                        padding: 10
                                     }
                                 }
                             },
@@ -1436,7 +1463,163 @@ foreach ($players as $p) {
                     }
                 }
 
+                function renderTeamOverviewCharts() {
+                    const t = window.teamStatsData;
+                    if (!t) return;
+                    
+                    // 1. Team Batter Radar Chart
+                    const batterCanvas = document.getElementById('teamBatterRadarCanvas');
+                    if (batterCanvas) {
+                        const ctx = batterCanvas.getContext('2d');
+                        new Chart(ctx, {
+                            type: 'radar',
+                            data: {
+                                labels: ['接觸率 (避免K)', '選球力 (BB%)', '擊球率 (AVG)', '上壘率 (OBP)', '長打力 (SLG)'],
+                                datasets: [{
+                                    label: '團隊平均表現',
+                                    data: [t.batter.contactScore, t.batter.bbScore, t.batter.avgScore, t.batter.obpScore, t.batter.slgScore],
+                                    backgroundColor: 'rgba(59, 130, 246, 0.2)', // Sleek primary blue
+                                    borderColor: '#3b82f6',
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#3b82f6',
+                                    pointBorderColor: '#fff',
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: '#3b82f6'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: {
+                                    padding: {
+                                        top: 25,
+                                        bottom: 25,
+                                        left: 45,
+                                        right: 45
+                                    }
+                                },
+                                scales: {
+                                    r: {
+                                        angleLines: { color: '#e2e8f0' },
+                                        grid: { color: '#e2e8f0' },
+                                        suggestedMin: 0,
+                                        suggestedMax: 100,
+                                        ticks: { stepSize: 20, display: false },
+                                        pointLabels: {
+                                            font: {
+                                                family: "'Noto Sans TC', 'Outfit', sans-serif",
+                                                size: 11,
+                                                weight: 'bold'
+                                            },
+                                            color: '#334155',
+                                            padding: 10
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: { font: { family: "'Noto Sans TC', sans-serif", size: 11 }, color: '#334155' }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const index = context.dataIndex;
+                                                const score = context.raw;
+                                                let rawVal = '';
+                                                if (index === 0) rawVal = ((1 - t.batter.kRate)*100).toFixed(1) + '% (避免被K)';
+                                                else if (index === 1) rawVal = (t.batter.bbRate * 100).toFixed(1) + '%';
+                                                else if (index === 2) rawVal = t.batter.avg.toFixed(3);
+                                                else if (index === 3) rawVal = t.batter.obp.toFixed(3);
+                                                else if (index === 4) rawVal = t.batter.slg.toFixed(3);
+                                                
+                                                return `評分: ${score.toFixed(0)} (原始平均值: ${rawVal})`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    // 2. Team Pitcher Radar Chart
+                    const pitcherCanvas = document.getElementById('teamPitcherRadarCanvas');
+                    if (pitcherCanvas) {
+                        const ctx = pitcherCanvas.getContext('2d');
+                        new Chart(ctx, {
+                            type: 'radar',
+                            data: {
+                                labels: ['防禦率 (ERA)', '上壘壓制 (WHIP)', '三振力 (K/9)', '控球力 (BB/9)', '揮空誘使 (Whiff%)'],
+                                datasets: [{
+                                    label: '團隊平均表現',
+                                    data: [t.pitcher.eraScore, t.pitcher.whipScore, t.pitcher.k9Score, t.pitcher.bb9Score, t.pitcher.whiffScore],
+                                    backgroundColor: 'rgba(16, 185, 129, 0.2)', // Emerald green
+                                    borderColor: '#10b981',
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#10b981',
+                                    pointBorderColor: '#fff',
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: '#10b981'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: {
+                                    padding: {
+                                        top: 25,
+                                        bottom: 25,
+                                        left: 45,
+                                        right: 45
+                                    }
+                                },
+                                scales: {
+                                    r: {
+                                        angleLines: { color: '#e2e8f0' },
+                                        grid: { color: '#e2e8f0' },
+                                        suggestedMin: 0,
+                                        suggestedMax: 100,
+                                        ticks: { stepSize: 20, display: false },
+                                        pointLabels: {
+                                            font: {
+                                                family: "'Noto Sans TC', 'Outfit', sans-serif",
+                                                size: 11,
+                                                weight: 'bold'
+                                            },
+                                            color: '#334155',
+                                            padding: 10
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: { font: { family: "'Noto Sans TC', sans-serif", size: 11 }, color: '#334155' }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const index = context.dataIndex;
+                                                const score = context.raw;
+                                                let rawVal = '';
+                                                if (index === 0) rawVal = t.pitcher.era.toFixed(2);
+                                                else if (index === 1) rawVal = t.pitcher.whip.toFixed(2);
+                                                else if (index === 2) rawVal = t.pitcher.k9.toFixed(2);
+                                                else if (index === 3) rawVal = t.pitcher.bb9.toFixed(2);
+                                                else if (index === 4) rawVal = (t.pitcher.whiffRate * 100).toFixed(1) + '%';
+                                                
+                                                return `評分: ${score.toFixed(0)} (原始平均值: ${rawVal})`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
                 document.addEventListener('DOMContentLoaded', function() {
+                    renderTeamOverviewCharts();
                     const select = document.getElementById('player-select');
                     if (select && select.value) {
                         showPlayerDetails(select.value);

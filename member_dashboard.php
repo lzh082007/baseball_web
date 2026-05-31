@@ -1128,6 +1128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
+                                    layout: {
+                                        padding: {
+                                            top: 25,
+                                            bottom: 25,
+                                            left: 45,
+                                            right: 45
+                                        }
+                                    },
                                     scales: {
                                         r: {
                                             angleLines: {
@@ -1148,7 +1156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                     size: 11,
                                                     weight: 'bold'
                                                 },
-                                                color: '#334155'
+                                                color: '#334155',
+                                                padding: 10
                                             }
                                         }
                                     },
@@ -1232,6 +1241,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
+                                    layout: {
+                                        padding: {
+                                            top: 25,
+                                            bottom: 25,
+                                            left: 45,
+                                            right: 45
+                                        }
+                                    },
                                     scales: {
                                         r: {
                                             angleLines: {
@@ -1252,7 +1269,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                     size: 11,
                                                     weight: 'bold'
                                                 },
-                                                color: '#334155'
+                                                color: '#334155',
+                                                padding: 10
                                             }
                                         }
                                     },
