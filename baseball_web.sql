@@ -3,11 +3,10 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2026 年 05 月 28 日 04:20
+-- 產生時間： 2026 年 06 月 04 日 03:38
 -- 伺服器版本： 10.4.28-MariaDB
 -- PHP 版本： 8.2.4
 
-SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -35,6 +34,10 @@ CREATE TABLE `contact_us` (
   `content_text` varchar(255) NOT NULL,
   `link` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `contact_us`:
+--
 
 --
 -- 傾印資料表的資料 `contact_us`
@@ -65,6 +68,12 @@ CREATE TABLE `form` (
   `form_contact` varchar(255) DEFAULT NULL COMMENT '聯絡資訊'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- 資料表的關聯 `form`:
+--   `team_id`
+--       `team` -> `team_Id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -84,11 +93,18 @@ CREATE TABLE `game` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- 資料表的關聯 `game`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--
+
+--
 -- 傾印資料表的資料 `game`
 --
 
 INSERT INTO `game` (`Game_id`, `Team_Id`, `game_date`, `game_time`, `location`, `opponent`, `result`, `batting_first`) VALUES(1, 1, '2026-05-13', '05:23:00', '地點', '測試對手', '8:4 勝', '先攻');
 INSERT INTO `game` (`Game_id`, `Team_Id`, `game_date`, `game_time`, `location`, `opponent`, `result`, `batting_first`) VALUES(2, 1, '2026-05-12', '12:22:00', '地點', '對手', '5:3 勝', '後攻');
+INSERT INTO `game` (`Game_id`, `Team_Id`, `game_date`, `game_time`, `location`, `opponent`, `result`, `batting_first`) VALUES(3, 1, '2026-05-31', '12:30:00', '地點', '對手', '', '後攻');
 
 -- --------------------------------------------------------
 
@@ -104,6 +120,14 @@ CREATE TABLE `gamerecord` (
   `record_file` varchar(255) DEFAULT NULL COMMENT '紀錄表檔案路徑 (PDF/JPG)',
   `created_at` datetime DEFAULT NULL COMMENT '檔案上傳時間'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `gamerecord`:
+--   `Game_Id`
+--       `game` -> `Game_id`
+--   `mId`
+--       `member` -> `mId`
+--
 
 -- --------------------------------------------------------
 
@@ -121,6 +145,14 @@ CREATE TABLE `game_lineups` (
   `status` varchar(20) NOT NULL DEFAULT 'active',
   `sub_seq` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `game_lineups`:
+--   `game_id`
+--       `game` -> `Game_id`
+--   `player_id`
+--       `player` -> `Player_id`
+--
 
 --
 -- 傾印資料表的資料 `game_lineups`
@@ -144,6 +176,53 @@ INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `posi
 INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(79, 2, 7, 28, 'CF', 'active', 0);
 INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(80, 2, 8, 29, 'RF', 'active', 0);
 INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(81, 2, 9, 31, 'DH', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(82, 3, 1, 1, 'DH', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(83, 3, 2, 22, 'C', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(84, 3, 3, 23, '1B', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(85, 3, 4, 24, '2B', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(86, 3, 5, 25, '3B', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(87, 3, 6, 26, 'SS', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(88, 3, 7, 27, 'LF', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(89, 3, 8, 28, 'CF', 'active', 0);
+INSERT INTO `game_lineups` (`id`, `game_id`, `batting_order`, `player_id`, `position`, `status`, `sub_seq`) VALUES(90, 3, 9, 29, 'RF', 'active', 0);
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `game_live_logs`
+--
+
+DROP TABLE IF EXISTS `game_live_logs`;
+CREATE TABLE `game_live_logs` (
+  `id` int(11) NOT NULL,
+  `game_id` int(11) NOT NULL,
+  `inning` int(11) NOT NULL,
+  `is_top` tinyint(4) NOT NULL,
+  `outs` int(11) NOT NULL,
+  `pa_result` varchar(20) NOT NULL,
+  `description` text DEFAULT NULL,
+  `type` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `game_live_logs`:
+--   `game_id`
+--       `game` -> `Game_id`
+--
+
+--
+-- 傾印資料表的資料 `game_live_logs`
+--
+
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(1, 3, 1, 1, 0, 'K', '', 'defense', '2026-05-29 12:15:34');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(2, 3, 1, 1, 1, 'K', '', 'defense', '2026-05-29 12:15:44');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(3, 3, 1, 1, 2, 'K', '', 'defense', '2026-05-29 12:15:49');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(4, 3, 1, 0, 0, 'HR', '劉詠傑全壘打', 'offense', '2026-05-29 12:17:03');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(5, 3, 1, 0, 0, '1B', '', 'offense', '2026-06-01 13:11:12');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(6, 3, 1, 0, 0, 'K', '', 'offense', '2026-06-01 13:11:38');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(7, 3, 1, 0, 1, 'K', '', 'offense', '2026-06-01 13:11:44');
+INSERT INTO `game_live_logs` (`id`, `game_id`, `inning`, `is_top`, `outs`, `pa_result`, `description`, `type`, `created_at`) VALUES(8, 3, 1, 0, 2, 'K', '', 'offense', '2026-06-01 13:11:49');
 
 -- --------------------------------------------------------
 
@@ -169,15 +248,25 @@ CREATE TABLE `game_live_state` (
   `runner_first` tinyint(4) NOT NULL DEFAULT 0,
   `runner_second` tinyint(4) NOT NULL DEFAULT 0,
   `runner_third` tinyint(4) NOT NULL DEFAULT 0,
-  `is_ended` tinyint(4) NOT NULL DEFAULT 0
+  `is_ended` tinyint(4) NOT NULL DEFAULT 0,
+  `runner_first_id` int(11) DEFAULT NULL,
+  `runner_second_id` int(11) DEFAULT NULL,
+  `runner_third_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `game_live_state`:
+--   `game_id`
+--       `game` -> `Game_id`
+--
 
 --
 -- 傾印資料表的資料 `game_live_state`
 --
 
-INSERT INTO `game_live_state` (`game_id`, `current_batter_order`, `our_score`, `opponent_score`, `inning`, `is_top`, `outs`, `balls`, `strikes`, `our_hits`, `opponent_hits`, `our_errors`, `opponent_errors`, `runner_first`, `runner_second`, `runner_third`, `is_ended`) VALUES(1, 1, 8, 4, 9, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-INSERT INTO `game_live_state` (`game_id`, `current_batter_order`, `our_score`, `opponent_score`, `inning`, `is_top`, `outs`, `balls`, `strikes`, `our_hits`, `opponent_hits`, `our_errors`, `opponent_errors`, `runner_first`, `runner_second`, `runner_third`, `is_ended`) VALUES(2, 1, 5, 3, 9, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+INSERT INTO `game_live_state` (`game_id`, `current_batter_order`, `our_score`, `opponent_score`, `inning`, `is_top`, `outs`, `balls`, `strikes`, `our_hits`, `opponent_hits`, `our_errors`, `opponent_errors`, `runner_first`, `runner_second`, `runner_third`, `is_ended`, `runner_first_id`, `runner_second_id`, `runner_third_id`) VALUES(1, 1, 8, 4, 9, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, NULL, NULL);
+INSERT INTO `game_live_state` (`game_id`, `current_batter_order`, `our_score`, `opponent_score`, `inning`, `is_top`, `outs`, `balls`, `strikes`, `our_hits`, `opponent_hits`, `our_errors`, `opponent_errors`, `runner_first`, `runner_second`, `runner_third`, `is_ended`, `runner_first_id`, `runner_second_id`, `runner_third_id`) VALUES(2, 1, 5, 3, 9, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, NULL, NULL);
+INSERT INTO `game_live_state` (`game_id`, `current_batter_order`, `our_score`, `opponent_score`, `inning`, `is_top`, `outs`, `balls`, `strikes`, `our_hits`, `opponent_hits`, `our_errors`, `opponent_errors`, `runner_first`, `runner_second`, `runner_third`, `is_ended`, `runner_first_id`, `runner_second_id`, `runner_third_id`) VALUES(3, 6, 1, 0, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -195,6 +284,14 @@ CREATE TABLE `game_pitchers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- 資料表的關聯 `game_pitchers`:
+--   `game_id`
+--       `game` -> `Game_id`
+--   `player_id`
+--       `player` -> `Player_id`
+--
+
+--
 -- 傾印資料表的資料 `game_pitchers`
 --
 
@@ -202,6 +299,7 @@ INSERT INTO `game_pitchers` (`id`, `game_id`, `player_id`, `status`, `pitcher_se
 INSERT INTO `game_pitchers` (`id`, `game_id`, `player_id`, `status`, `pitcher_seq`) VALUES(9, 1, 21, 'active', 2);
 INSERT INTO `game_pitchers` (`id`, `game_id`, `player_id`, `status`, `pitcher_seq`) VALUES(10, 2, 21, 'substituted', 1);
 INSERT INTO `game_pitchers` (`id`, `game_id`, `player_id`, `status`, `pitcher_seq`) VALUES(11, 2, 1, 'active', 2);
+INSERT INTO `game_pitchers` (`id`, `game_id`, `player_id`, `status`, `pitcher_seq`) VALUES(12, 3, 21, 'active', 1);
 
 -- --------------------------------------------------------
 
@@ -219,6 +317,10 @@ CREATE TABLE `member` (
   `status` enum('pending','active') NOT NULL COMMENT '審核狀態',
   `created_at` datetime NOT NULL COMMENT '帳號註冊時間'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `member`:
+--
 
 --
 -- 傾印資料表的資料 `member`
@@ -258,6 +360,10 @@ CREATE TABLE `news` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- 資料表的關聯 `news`:
+--
+
+--
 -- 傾印資料表的資料 `news`
 --
 
@@ -282,6 +388,12 @@ CREATE TABLE `ob` (
   `status` varchar(100) DEFAULT NULL COMMENT '畢業後現況或豐功偉業',
   `image_path` varchar(255) DEFAULT NULL COMMENT 'OB照片路徑'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `ob`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--
 
 --
 -- 傾印資料表的資料 `ob`
@@ -310,6 +422,14 @@ CREATE TABLE `player` (
   `weight` int(11) DEFAULT NULL COMMENT '體重 (kg)',
   `image_path` varchar(255) DEFAULT NULL COMMENT '球員照片檔案路徑'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `player`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--   `mId`
+--       `member` -> `mId`
+--
 
 --
 -- 傾印資料表的資料 `player`
@@ -346,6 +466,14 @@ CREATE TABLE `playerrecord` (
   `at_bats` int(11) DEFAULT NULL COMMENT '打席/打數',
   `avg` decimal(4,3) DEFAULT NULL COMMENT '打擊率'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `playerrecord`:
+--   `Record_Id`
+--       `gamerecord` -> `record_id`
+--   `Player_Id`
+--       `player` -> `Player_id`
+--
 
 -- --------------------------------------------------------
 
@@ -398,33 +526,49 @@ CREATE TABLE `player_game_details` (
   `whiffs` int(11) DEFAULT 0,
   `gb_count` int(11) DEFAULT 0,
   `ld_count` int(11) DEFAULT 0,
-  `fb_count` int(11) DEFAULT 0
+  `fb_count` int(11) DEFAULT 0,
+  `hard_hit` int(11) DEFAULT 0,
+  `soft_hit` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `player_game_details`:
+--   `game_id`
+--       `game` -> `Game_id`
+--   `player_id`
+--       `player` -> `Player_id`
+--
 
 --
 -- 傾印資料表的資料 `player_game_details`
 --
 
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(10, 1, 23, 5, '1B, GO, 1B, FO, GO', 0, '0', 0, 0, 0, 1, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(11, 1, 24, 5, 'BB, 1B, FO, K, GO', 0, '0', 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(12, 1, 1, 5, '1B, 2B, HR, FO, GO', 95, '6', 7, 2, 3, 3, 2, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 25, 5, 0, 0, 3, 0, 0, 0, 0, 60, 35, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(13, 1, 25, 5, 'HR, GO, FO, BB, K', 0, '0', 1, 1, 0, 2, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(14, 1, 26, 4, 'FO, 1B, K, GO', 0, '0', 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(15, 1, 27, 4, 'GO, K, FO, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(16, 1, 28, 4, 'BB, 1B, GO, K', 0, '0', 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(17, 1, 29, 4, 'GO, K, GO, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(18, 1, 30, 4, 'BB, GO, FO, GO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(19, 1, 21, 0, NULL, 42, '3', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 12, 2, 0, 0, 1, 0, 0, 0, 0, 28, 14, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(20, 2, 23, 4, '1B, GO, 1B, FO', 0, '0', 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(21, 2, 24, 4, 'BB, 1B, FO, GO', 0, '0', 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(22, 2, 1, 4, '1B, 2B, BB, GO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(23, 2, 25, 4, '2B, GO, K, FO', 0, '0', 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(24, 2, 26, 4, '1B, K, GO, FO', 0, '0', 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(25, 2, 27, 3, 'GO, K, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(26, 2, 28, 3, '1B, GO, K', 0, '0', 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(27, 2, 29, 3, 'GO, K, GO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(28, 2, 31, 3, 'BB, GO, FO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`) VALUES(29, 2, 1, 0, NULL, 25, '2', 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 7, 1, 0, 0, 0, 0, 0, 0, 0, 18, 7, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(10, 1, 23, 5, '1B, GO, 1B, FO, GO', 0, '0', 0, 0, 0, 1, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(11, 1, 24, 5, 'BB, 1B, FO, K, GO', 0, '0', 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(12, 1, 1, 5, '1B, 2B, HR, FO, GO', 95, '6', 7, 2, 3, 3, 2, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 25, 5, 0, 0, 3, 0, 0, 0, 0, 60, 35, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(13, 1, 25, 5, 'HR, GO, FO, BB, K', 0, '0', 1, 1, 0, 2, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(14, 1, 26, 4, 'FO, 1B, K, GO', 0, '0', 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(15, 1, 27, 4, 'GO, K, FO, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(16, 1, 28, 4, 'BB, 1B, GO, K', 0, '0', 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(17, 1, 29, 4, 'GO, K, GO, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(18, 1, 30, 4, 'BB, GO, FO, GO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(19, 1, 21, 0, NULL, 42, '3', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 12, 2, 0, 0, 1, 0, 0, 0, 0, 28, 14, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(20, 2, 23, 4, '1B, GO, 1B, FO', 0, '0', 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(21, 2, 24, 4, 'BB, 1B, FO, GO', 0, '0', 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(22, 2, 1, 4, '1B, 2B, BB, GO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(23, 2, 25, 4, '2B, GO, K, FO', 0, '0', 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(24, 2, 26, 4, '1B, K, GO, FO', 0, '0', 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(25, 2, 27, 3, 'GO, K, FO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(26, 2, 28, 3, '1B, GO, K', 0, '0', 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(27, 2, 29, 3, 'GO, K, GO', 0, '0', 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(28, 2, 31, 3, 'BB, GO, FO', 0, '0', 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(29, 2, 1, 0, NULL, 25, '2', 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 7, 1, 0, 0, 0, 0, 0, 0, 0, 18, 7, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(30, 3, 21, 0, NULL, 10, '1', 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(31, 3, 1, 1, 'HR', 0, '0', 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(32, 3, 22, 1, '1B', 0, '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 0, 0, 0, 0, 0, 1, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(33, 3, 23, 1, 'K', 0, '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(34, 3, 24, 1, 'K', 0, '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `player_game_details` (`id`, `game_id`, `player_id`, `pa_count`, `pa_results`, `pitches`, `innings`, `strikeouts`, `walks`, `earned_runs`, `rbi`, `runs`, `stolen_bases`, `sac_bunt`, `sac_fly`, `hit_by_pitch`, `go_outs`, `fo_outs`, `is_start`, `is_relief`, `is_cg`, `is_sho`, `win`, `loss`, `save`, `blown_save`, `hold`, `batters_faced`, `hits_allowed`, `wild_pitches`, `balks`, `runs_allowed`, `p_go_outs`, `p_fo_outs`, `p_hit_by_pitch`, `p_hr_allowed`, `strikes`, `balls`, `swings`, `first_pitch_swings`, `whiffs`, `gb_count`, `ld_count`, `fb_count`, `hard_hit`, `soft_hit`) VALUES(35, 3, 25, 1, 'K', 0, '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -441,6 +585,12 @@ CREATE TABLE `recruitmentinfo` (
   `contact_info` varchar(200) DEFAULT NULL COMMENT '球經聯繫方式或社群連結'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- 資料表的關聯 `recruitmentinfo`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -453,6 +603,10 @@ CREATE TABLE `team` (
   `team_name` varchar(50) NOT NULL COMMENT '球隊名稱',
   `team_type` varchar(20) NOT NULL COMMENT '隊伍類型：Men, Woman, OB'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `team`:
+--
 
 --
 -- 傾印資料表的資料 `team`
@@ -479,6 +633,12 @@ CREATE TABLE `teamhistory` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- 資料表的關聯 `teamhistory`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--
+
+--
 -- 傾印資料表的資料 `teamhistory`
 --
 
@@ -502,6 +662,12 @@ CREATE TABLE `video` (
   `date` date DEFAULT NULL COMMENT '日期',
   `category` varchar(100) DEFAULT NULL COMMENT '分類'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 資料表的關聯 `video`:
+--   `Team_Id`
+--       `team` -> `team_Id`
+--
 
 --
 -- 傾印資料表的資料 `video`
@@ -549,6 +715,13 @@ ALTER TABLE `game_lineups`
   ADD PRIMARY KEY (`id`),
   ADD KEY `game_id` (`game_id`),
   ADD KEY `player_id` (`player_id`);
+
+--
+-- 資料表索引 `game_live_logs`
+--
+ALTER TABLE `game_live_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `game_id` (`game_id`);
 
 --
 -- 資料表索引 `game_live_state`
@@ -654,7 +827,7 @@ ALTER TABLE `form`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `game`
 --
 ALTER TABLE `game`
-  MODIFY `Game_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '比賽識別碼', AUTO_INCREMENT=3;
+  MODIFY `Game_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '比賽識別碼', AUTO_INCREMENT=4;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `gamerecord`
@@ -666,13 +839,19 @@ ALTER TABLE `gamerecord`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `game_lineups`
 --
 ALTER TABLE `game_lineups`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `game_live_logs`
+--
+ALTER TABLE `game_live_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `game_pitchers`
 --
 ALTER TABLE `game_pitchers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `member`
@@ -708,7 +887,7 @@ ALTER TABLE `playerrecord`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `player_game_details`
 --
 ALTER TABLE `player_game_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `recruitmentinfo`
@@ -763,6 +942,12 @@ ALTER TABLE `gamerecord`
 ALTER TABLE `game_lineups`
   ADD CONSTRAINT `game_lineups_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`Game_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `game_lineups_ibfk_2` FOREIGN KEY (`player_id`) REFERENCES `player` (`Player_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `game_live_logs`
+--
+ALTER TABLE `game_live_logs`
+  ADD CONSTRAINT `game_live_logs_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`Game_id`) ON DELETE CASCADE;
 
 --
 -- 資料表的限制式 `game_live_state`
@@ -821,7 +1006,6 @@ ALTER TABLE `teamhistory`
 --
 ALTER TABLE `video`
   ADD CONSTRAINT `fk_video_team` FOREIGN KEY (`Team_Id`) REFERENCES `team` (`team_Id`);
-SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
