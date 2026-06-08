@@ -313,7 +313,7 @@ CREATE TABLE `member` (
   `account` varchar(50) NOT NULL COMMENT '登入帳號',
   `password` varchar(255) NOT NULL COMMENT '加密後的密碼',
   `name` varchar(50) NOT NULL COMMENT '使用者姓名',
-  `role` enum('fan','player','admin') NOT NULL COMMENT '權限等級',
+  `role` enum('fan','player','admin','ob') NOT NULL COMMENT '權限等級',
   `status` enum('pending','active') NOT NULL COMMENT '審核狀態',
   `created_at` datetime NOT NULL COMMENT '帳號註冊時間'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

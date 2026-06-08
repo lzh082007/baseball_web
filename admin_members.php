@@ -4,7 +4,7 @@ requireAdmin();
 
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['add'])) {
+    if ((isset($_POST['action']) && $_POST['action'] === 'add') || isset($_POST['add'])) {
         $account = $_POST['account'];
         $existing = $db->find('member', 'account', $account);
         if ($existing) {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
         $msg = '會員已成功核准並開通帳號。';
     }
-    if (isset($_POST['update'])) {
+    if ((isset($_POST['action']) && $_POST['action'] === 'update') || isset($_POST['update'])) {
         $db->update('member', $_POST['mId'], [
             'name' => $_POST['name'],
             'account' => $_POST['account'],
@@ -80,9 +80,12 @@ $activeMembers = array_filter($members, function($m) {
             <!-- Form Card -->
             <div class="admin-form-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 20px;">
                 <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: inline-block;"><?= $editRecord ? '修改帳號資料' : '新增帳號' ?></h3>
-                <form method="POST" action="admin_members.php">
+                <form method="POST" action="admin_members.php<?= $editRecord ? '?edit_id=' . $editRecord['mId'] : '' ?>">
                     <?php if ($editRecord): ?>
                         <input type="hidden" name="mId" value="<?= $editRecord['mId'] ?>">
+                        <input type="hidden" name="action" value="update">
+                    <?php else: ?>
+                        <input type="hidden" name="action" value="add">
                     <?php endif; ?>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">姓名</label>
