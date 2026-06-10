@@ -33,6 +33,13 @@ class Database {
             if (!in_array('soft_hit', $cols)) {
                 $this->pdo->exec("ALTER TABLE `player_game_details` ADD COLUMN `soft_hit` int(11) DEFAULT 0");
             }
+
+            // Ensure member.role supports 'ob' (added 6/8 — git pull does not auto-update MySQL)
+            $stmt = $this->pdo->query("SHOW COLUMNS FROM `member` LIKE 'role'");
+            $roleCol = $stmt->fetch();
+            if ($roleCol && strpos($roleCol['Type'], "'ob'") === false) {
+                $this->pdo->exec("ALTER TABLE `member` MODIFY `role` enum('fan','player','admin','ob') NOT NULL COMMENT '權限等級'");
+            }
         } catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }
