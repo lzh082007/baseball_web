@@ -23,7 +23,29 @@ class Database {
 
         try {
             $this->pdo = new PDO($dsn, $user, $pass, $options);
-            
+        } catch (\PDOException $e) {
+            // 1049: Unknown database - Auto initialize if missing
+            if ($e->getCode() == 1049 || strpos($e->getMessage(), '1049') !== false || strpos($e->getMessage(), 'Unknown database') !== false) {
+                try {
+                    $rootDsn = "mysql:host=$host;port=3306;charset=$charset";
+                    $initPdo = new PDO($rootDsn, $user, $pass, $options);
+                    $initPdo->exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+                    $this->pdo = new PDO($dsn, $user, $pass, $options);
+
+                    $sqlFile = __DIR__ . '/../baseball_web.sql';
+                    if (file_exists($sqlFile)) {
+                        $sql = file_get_contents($sqlFile);
+                        $this->pdo->exec($sql);
+                    }
+                } catch (\PDOException $initEx) {
+                    throw new \PDOException("自動建立資料庫失敗: " . $initEx->getMessage(), (int)$initEx->getCode());
+                }
+            } else {
+                throw new \PDOException($e->getMessage(), (int)$e->getCode());
+            }
+        }
+
+        try {
             // Check & alter player_game_details for hard_hit & soft_hit
             $stmt = $this->pdo->query("DESCRIBE `player_game_details`");
             $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -41,7 +63,7 @@ class Database {
                 $this->pdo->exec("ALTER TABLE `member` MODIFY `role` enum('fan','player','admin','ob') NOT NULL COMMENT '權限等級'");
             }
         } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int)$e->getCode());
+            // Tables might be empty or in the process of setup
         }
     }
 
