@@ -1390,7 +1390,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
 <section style="padding-bottom: 50px;">
     <div class="container">
         
-        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 20px;">
+        <div class="top-actions-row">
             <a href="admin_game_stats.php" class="admin-back-btn" style="margin-bottom:0;">
                 <i class="fas fa-arrow-left"></i> 返回比賽列表
             </a>
@@ -1865,7 +1865,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
             <div class="live-scoreboard-card" style="background: #0f172a; color: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 25px;">
                 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
                     <!-- Left: Teams and Scores (R-H-E Table Style) -->
-                    <div style="flex: 2; min-width: 320px;">
+                    <div style="flex: 2; min-width: 280px;">
                         <table style="width: 100%; border-collapse: collapse; text-align: center; color: white; font-family: 'Outfit', sans-serif;">
                             <thead>
                                 <tr style="border-bottom: 1px solid #334155; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">
@@ -1981,7 +1981,7 @@ $is_game_ended = ($live_state && isset($live_state['is_ended']) && $live_state['
                     </div>
 
                     <!-- Right: Diamond Base Runner Visual -->
-                    <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="flex: 1; min-width: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                         <div style="position: relative; width: 100px; height: 100px; margin-bottom: 8px;">
                             <div id="base-2" style="position: absolute; top: 0; left: 42px; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= ($live_state && $live_state['runner_second']) ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); cursor: pointer; transition: all 0.2s; <?= ($live_state && $live_state['runner_second']) ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>" title="二壘"></div>
                             <div id="base-3" style="position: absolute; top: 42px; left: 0; width: 16px; height: 16px; border: 2px solid #64748b; background: <?= ($live_state && $live_state['runner_third']) ? '#fbbf24' : '#1e293b' ?>; transform: rotate(45deg); cursor: pointer; transition: all 0.2s; <?= ($live_state && $live_state['runner_third']) ? 'box-shadow: 0 0 8px #fbbf24;' : '' ?>" title="三壘"></div>
@@ -2986,8 +2986,9 @@ $logs_stmt = $pdo->prepare("SELECT * FROM game_live_logs WHERE game_id = ? ORDER
 $logs_stmt->execute([$game_id]);
 $game_logs = $logs_stmt->fetchAll();
 ?>
-<div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 25px;">
-    <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+<div class="container" style="margin-top: 25px; margin-bottom: 50px;">
+    <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+        <h3 style="margin-top:0; color:#1e293b; font-size:1.15rem; font-weight:800; border-bottom:2px solid #f1f5f9; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
         <span><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> 本場打席敘述歷史 (Play-by-Play Log)</span>
         <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">最新紀錄顯示在最上方</span>
     </h3>
@@ -3028,6 +3029,7 @@ $game_logs = $logs_stmt->fetchAll();
             </div>
         <?php endif; ?>
     </div>
+</div>
 </div>
 
 <!-- ── 4. 浮動 Modal 彈窗 (更換代打/更換投手/更換守備位置) ── -->
@@ -3114,6 +3116,29 @@ $game_logs = $logs_stmt->fetchAll();
 </div>
 
 <style>
+/* Page container padding to avoid sticking to screen boundaries on tablets & mobile */
+.container {
+    padding-left: 15px;
+    padding-right: 15px;
+    box-sizing: border-box;
+}
+
+/* Modal dialog boxes responsiveness */
+.modal-box {
+    max-width: 90%;
+    box-sizing: border-box;
+}
+
+/* Top Back Button & Actions Row layout */
+.top-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
 .pa-label {
     border: 1px solid #cbd5e1;
     background: #f8f9fa;
@@ -3146,7 +3171,7 @@ $game_logs = $logs_stmt->fetchAll();
 
 .scoreboard-center-panel {
     flex: 1.2;
-    min-width: 220px;
+    min-width: 180px; /* Reduced from 220px to prevent layout wrapping on iPad */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3157,13 +3182,24 @@ $game_logs = $logs_stmt->fetchAll();
     box-sizing: border-box;
 }
 
+/* iPad Portrait & Small Desktop Layout */
 @media (max-width: 1024px) {
     .live-grid-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 260px 1fr; /* 2 columns: batting order left, actions right */
+    }
+    .live-grid-container > div:first-child {
+        grid-row: span 2; /* Batting order spans full height */
     }
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Layout */
+@media (max-width: 767px) {
+    .live-grid-container {
+        grid-template-columns: 1fr;
+    }
+    .live-grid-container > div:first-child {
+        grid-row: auto;
+    }
     .scoreboard-center-panel {
         border-left: none;
         border-right: none;
@@ -3171,6 +3207,14 @@ $game_logs = $logs_stmt->fetchAll();
         border-bottom: 1px solid #1e293b;
         padding: 15px 0;
         margin: 10px 0;
+    }
+    .top-actions-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .top-actions-row > * {
+        text-align: center;
+        justify-content: center;
     }
 }
 </style>
