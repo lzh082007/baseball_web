@@ -873,7 +873,13 @@ foreach ($players as $p) {
                                 <i class="fas fa-baseball-ball" style="color: var(--primary);"></i>全隊打擊整體指標
                             </h4>
                             <div style="height: 320px; position: relative;">
-                                <canvas id="teamBatterRadarCanvas"></canvas>
+                                <?php if ($lg_pa > 0): ?>
+                                    <canvas id="teamBatterRadarCanvas"></canvas>
+                                <?php else: ?>
+                                    <div style="display:flex; align-items:center; justify-content:center; height:100%; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-weight:600; background:#f8fafc; font-size: 0.95rem;">
+                                        無資料 (暫無團隊打擊數據)
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <!-- 團隊投球雷達圖 -->
@@ -882,7 +888,13 @@ foreach ($players as $p) {
                                 <i class="fas fa-baseball-ball" style="color: var(--secondary);"></i>全隊投球整體指標
                             </h4>
                             <div style="height: 320px; position: relative;">
-                                <canvas id="teamPitcherRadarCanvas"></canvas>
+                                <?php if ($lg_p_pitches > 0): ?>
+                                    <canvas id="teamPitcherRadarCanvas"></canvas>
+                                <?php else: ?>
+                                    <div style="display:flex; align-items:center; justify-content:center; height:100%; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-weight:600; background:#f8fafc; font-size: 0.95rem;">
+                                        無資料 (暫無團隊投球數據)
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -928,12 +940,12 @@ foreach ($players as $p) {
                             </div>
                         </div>
 
-                        <?php if ($hasBattingRecord): ?>
                         <!-- 打者表現雷達圖分析卡片 -->
                         <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:24px; border:1px solid #e2e8f0; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
                             <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-chart-pie" style="color: var(--primary);"></i> 個人與團隊打擊表現對比分析
                             </h4>
+                            <?php if ($hasBattingRecord): ?>
                             <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center;">
                                 <!-- 雷達圖 Canvas 容器 -->
                                 <div style="flex: 1; min-width: 280px; max-width: 380px; height: 320px; position: relative;">
@@ -951,8 +963,12 @@ foreach ($players as $p) {
                                     </div>
                                 </div>
                             </div>
+                            <?php else: ?>
+                            <div style="display:flex; align-items:center; justify-content:center; height:200px; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-weight:600; background:#f8fafc; font-size: 0.95rem;">
+                                無資料 (暫無個人打擊數據)
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
 
                         <!-- 單場打擊明細 -->
                         <div style="margin-bottom:25px;">
@@ -1020,12 +1036,12 @@ foreach ($players as $p) {
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($hasPitchingRecord): ?>
                         <!-- 投手表現雷達圖分析卡片 -->
                         <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:24px; border:1px solid #e2e8f0; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
                             <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-chart-pie" style="color: var(--primary);"></i> 個人與團隊投球表現對比分析
                             </h4>
+                            <?php if ($hasPitchingRecord): ?>
                             <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center;">
                                 <!-- 雷達圖 Canvas 容器 -->
                                 <div style="flex: 1; min-width: 280px; max-width: 380px; height: 320px; position: relative;">
@@ -1043,8 +1059,12 @@ foreach ($players as $p) {
                                     </div>
                                 </div>
                             </div>
+                            <?php else: ?>
+                            <div style="display:flex; align-items:center; justify-content:center; height:200px; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-weight:600; background:#f8fafc; font-size: 0.95rem;">
+                                無資料 (暫無個人投球數據)
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
 
                         <!-- ── 單場投球明細 ── -->
                         <div>

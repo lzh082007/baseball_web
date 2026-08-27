@@ -235,7 +235,7 @@ foreach ($teams as $t) {
                                             'score' => $gScore,
                                             'win_loss' => $gWinLoss
                                         ]), ENT_QUOTES, 'UTF-8') ?>)"><i class="fas fa-edit"></i> 修改</button>
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('確定要刪除這場比賽紀錄嗎？')">
+                                        <form method="POST" style="display: inline;" onsubmit="return confirm('確定要刪除這場比賽紀錄嗎？警告：刪除比賽後將會一併刪除此場比賽的所有球員數據與相關統計，且無法復原！')">
                                             <input type="hidden" name="Game_id" value="<?= $g['Game_id'] ?>">
                                             <button type="submit" name="delete" class="admin-action-btn admin-btn-delete"><i class="fas fa-trash"></i> 刪除</button>
                                         </form>

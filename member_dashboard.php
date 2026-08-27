@@ -620,6 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <!-- ── 打者數據區 ── -->
                         <div id="stats-section-batter" class="stats-section" style="display:block;">
                             <!-- 打者表現雷達圖分析卡片 -->
+                            <?php if ($b_pa > 0): ?>
                             <div class="radar-analysis-card" style="background:#fff; border-radius:12px; padding:24px; border:1px solid #e2e8f0; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
                                 <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                     <i class="fas fa-chart-pie" style="color: var(--primary);"></i> 個人與團隊打擊表現對比分析
@@ -642,6 +643,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     </div>
                                 </div>
                             </div>
+                            <?php else: ?>
+                            <div style="padding:20px; background:#fafbfd; border-radius:12px; text-align:center; color:#64748b; margin-bottom:30px; border:1px dashed #cbd5e1;">
+                                <i class="fas fa-baseball-ball" style="font-size:2rem; color:#cbd5e1; margin-bottom:10px;"></i>
+                                <p style="margin:0; font-size:0.95rem; font-weight:600;">您目前尚無打擊數據記錄，無法生成打擊表現雷達圖。</p>
+                            </div>
+                            <?php endif; ?>
 
                             <!-- 打者生涯總數據 -->
                             <div style="margin-bottom:30px;">
